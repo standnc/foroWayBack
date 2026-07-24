@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Foro Retro BoomBang — Inicio{% endblock %}
+
+{% block content %}
+{# Hero section #}
+<section class="text-center py-12 md:py-16">
+  <h1 class="font-display text-4xl md:text-5xl font-bold text-white mb-4">
+    🏝️ Bienvenido a <span class="text-boom">ClashBangForum</span>
+  </h1>
+  <p class="text-slate-400 text-lg max-w-xl mx-auto">
+    Revive la comunidad del juego más colorido. Explora hilos históricos, comparte recuerdos y conecta con otros jugadores.
+  </p>
+</section>
+
+{# Stats bar #}
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10" aria-label="Estadísticas del foro">
+  {% for stat in stats %}
+  <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 text-center">
+    <p class="text-2xl font-bold font-display text-boom">{{ stat.valor }}</p>
+    <p class="text-sm text-slate-400 mt-1">{{ stat.etiqueta }}</p>
+  </div>
+  {% endfor %}
+</section>
+
+{# Categories #}
+<section aria-labelledby="categorias-title">
+  <h2 id="categorias-title" class="font-display text-xl font-semibold text-white mb-6 flex items-center gap-2">
+    <span class="w-1 h-6 bg-boom rounded-full" aria-hidden="true"></span>
+    Categorías
+  </h2>
+
+  <div class="space-y-3">
+    {% for cat in categorias %}
+    <a href="{% url 'forum:categoria' cat.slug %}"
+       class="block group bg-slate-800/30 hover:bg-slate-800/60 border border-slate-700/50 hover:border-boom/30 rounded-xl p-5 transition-all duration-200">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-boom/10 flex items-center justify-center text-lg flex-shrink-0" aria-hidden="true">
+            📁
+          </div>
+          <div>
+            <h3 class="font-semibold text-white group-hover:text-boom transition-colors">{{ cat.nombre }}</h3>
+            {% if cat.descripcion %}
+            <p class="text-sm text-slate-400 mt-0.5">{{ cat.descripcion|truncatechars:80 }}</p>
+            {% endif %}
+          </div>
+        </div>
+        <div class="flex items-center gap-4 text-sm text-slate-500 flex-shrink-0">
+          <span class="hidden sm:inline">{{ cat.total_hilos }} hilos</span>
+          <span class="hidden sm:inline">·</span>
+          <span class="hidden sm:inline">{{ cat.total_posts }} posts</span>
+          <svg class="w-5 h-5 text-slate-600 group-hover:text-boom transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </div>
+      </div>
+    </a>
+    {% empty %}
+    <p class="text-center text-slate-500 py-8">No hay categorías todavía.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

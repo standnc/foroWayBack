@@ -1,0 +1,18 @@
+{% extends "admin/index.html" %}
+{% load i18n static %}
+
+{% block sidebar %}
+{{ block.super }}
+<div class="module" style="margin-top: 20px; padding: 15px;">
+  <h2 style="margin-top: 0;">🔧 Utilidades</h2>
+  <ul class="actionlist">
+    <li>
+      <a href="{% url 'admin_log_view' %}?source=gunicorn-error&level=INFO" style="font-size: 13px;">
+        📋 Visor de logs
+      </a>
+      <br>
+      <span class="mini quiet">Gunicorn (info a error)</span>
+    </li>
+  </ul>
+</div>
+{% endblock %}

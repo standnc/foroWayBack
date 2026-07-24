@@ -1,0 +1,38 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Django
+staticfiles/
+media/
+db.sqlite3
+*.db
+
+# Data / logs
+*.json
+*.log
+
+# OpenCode (local dev only)
+.opencode/
+opencode.jsonc
+
+# OS
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+
+# IDE
+.vscode/
+.idea/
+
+# Pytest
+.pytest_cache/

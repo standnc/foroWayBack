@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Nuevo hilo — Foro Retro BoomBang{% endblock %}
+
+{% block content %}
+<nav class="text-sm text-slate-500 mb-4" aria-label="Migas de pan">
+  <a href="/" class="hover:text-boom transition-colors">Inicio</a>
+  <span class="mx-2">/</span>
+  <span class="text-slate-300">Nuevo hilo</span>
+</nav>
+
+<h1 class="font-display text-2xl font-bold text-white mb-6">Crear nuevo hilo</h1>
+
+<form method="post" class="max-w-2xl space-y-5">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="bg-red-900/30 border border-red-700/50 rounded-lg p-4 text-red-400 text-sm">
+    {{ form.non_field_errors }}
+  </div>
+  {% endif %}
+
+  {% for field in form %}
+  <div>
+    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate-300 mb-1.5">
+      {{ field.label }}
+    </label>
+    {{ field }}
+    {% if field.errors %}
+    <p class="mt-1 text-sm text-red-400">{{ field.errors|striptags }}</p>
+    {% endif %}
+    {% if field.help_text %}
+    <p class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <div class="flex items-center gap-3 pt-2">
+    <button type="submit"
+            class="bg-boom hover:bg-boom-dark text-white font-semibold px-6 py-2.5 rounded-lg transition-colors">
+      Publicar hilo
+    </button>
+    <a href="{% if form.initial.categoria %}{% url 'forum:categoria' form.initial.categoria.slug %}{% else %}{% url 'forum:index' %}{% endif %}"
+       class="text-slate-400 hover:text-white transition-colors text-sm">
+      Cancelar
+    </a>
+  </div>
+</form>
+{% endblock %}

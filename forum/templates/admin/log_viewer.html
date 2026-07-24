@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% block extrastyle %}
+{{ block.super }}
+<style>
+body { --primary: #79aec8; --secondary: #417690; --accent: #f5dd5d; --primary-fg: #fff; --body-fg: #333; --body-bg: #fff; --darkened-bg: #f8f8f8; }
+.log-container { font-family: "Cascadia Code","Fira Code","JetBrains Mono",monospace; font-size: 12px; }
+.log-entry { padding: 4px 10px; border-bottom: 1px solid #eee; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.log-entry:hover { background: #f0f0f0; }
+.log-critical { background: #fef2f2; border-left: 3px solid #dc2626; }
+.log-error { background: #fff7ed; border-left: 3px solid #ea580c; }
+.log-warning { background: #fefce8; border-left: 3px solid #ca8a04; }
+.log-info { border-left: 3px solid #3b82f6; }
+.log-debug { border-left: 3px solid #9ca3af; }
+.level-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+.level-CRITICAL { background: #dc2626; color: #fff; }
+.level-ERROR { background: #ea580c; color: #fff; }
+.level-WARNING { background: #eab308; color: #000; }
+.level-INFO { background: #3b82f6; color: #fff; }
+.level-DEBUG { background: #6b7280; color: #fff; }
+.log-msg { color: #374151; }
+.log-time { color: #6b7280; }
+</style>
+{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs"><a href="{% url 'admin:index' %}">{% translate 'Home' %}</a> &rsaquo; Visor de logs</div>
+{% endblock %}
+{% block content %}
+<div id="content-main">
+  <h1>📋 Visor de logs</h1>
+  <form method="GET" style="padding: 15px; background: var(--darkened-bg); border-radius: 4px; margin-bottom: 20px;">
+    <div style="display: flex; gap: 10px; align-items: end; flex-wrap: wrap;">
+      <div><label style="display:block;font-weight:600;margin-bottom:4px">Fuente</label>
+        <select name="source" onchange="this.form.submit()">
+          {% for s in sources %}<option value="{{ s }}" {% if source == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select></div>
+      <div><label style="display:block;font-weight:600;margin-bottom:4px">Nivel mínimo</label>
+        <select name="level" onchange="this.form.submit()">
+          {% for l in levels %}<option value="{{ l }}" {% if level == l %}selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select></div>
+      <div><label style="display:block;font-weight:600;margin-bottom:4px">Buscar</label>
+        <input type="text" name="q" value="{{ search }}" placeholder="texto..."></div>
+      <div><label style="display:block;font-weight:600;margin-bottom:4px">Máx</label>
+        <input type="number" name="max" value="{{ max_lines }}" style="width:70px"></div>
+      <div><button type="submit" class="button default" style="padding:6px 16px">Filtrar</button></div>
+    </div>
+    {% if file_size %}<p style="margin-top:10px;color:#666;font-size:12px;">Archivo: {{ file_size|filesizeformat }} · {{ entries|length }} entradas</p>{% endif %}
+  </form>
+  {% if error %}<div style="padding:15px;background:#fef2f2;color:#991b1b;border-radius:4px">⚠ {{ error }}</div>{% endif %}
+  {% if not entries and not error %}<div style="padding:15px">Sin entradas.</div>{% endif %}
+  <div class="log-container">
+    {% for entry in entries %}
+    <div class="log-entry log-{{ entry.level|lower }}">
+      <span class="level-badge level-{{ entry.level }}">{{ entry.level }}</span>
+      <span class="log-time">{{ entry.lines.0|truncatechars:100 }}</span>
+      {% if entry.lines|length > 1 %}
+      <details style="width:100%">
+        <summary style="cursor:pointer;color:var(--link-fg);font-size:11px">Traceback ({{ entry.lines|length }} líneas)</summary>
+        <pre style="margin:4px 0;padding:8px;background:#f8f8f8;border-radius:4px;overflow-x:auto;font-size:11px">{% for line in entry.lines %}{{ line }}{% endfor %}</pre>
+      </details>
+      {% endif %}
+    </div>
+    {% empty %}
+    <p style="padding:20px;text-align:center;color:#999">No hay entradas que coincidan.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

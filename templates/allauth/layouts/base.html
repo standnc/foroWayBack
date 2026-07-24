@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% block head_title %}{% endblock %} — ClashBangForum{% endblock %}
+
+{# All allauth pages render their content through {% block content %} #}
+{# which fills our base.html's {% block content %} #}
+
+{% block extra_head %}{% endblock %}
+{% block extra_body %}{% endblock %}

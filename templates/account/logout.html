@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load allauth i18n %}
+
+{% block title %}{% trans "Cerrar sesión" %} — ClashBangForum{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-12">
+  <div class="bg-retro-card border border-slate-700/50 rounded-xl p-8 shadow-xl">
+    <div class="text-center mb-6">
+      <div class="w-16 h-16 mx-auto rounded-full bg-slate-800 flex items-center justify-center mb-4" aria-hidden="true">
+        <svg class="w-8 h-8 text-coral" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+      </div>
+      <h1 class="font-display text-2xl font-bold text-white">
+        {% trans "Cerrar sesión" %}
+      </h1>
+      <p class="text-slate-400 mt-2">
+        {% trans '¿Seguro que desea cerrar sesión?' %}
+      </p>
+    </div>
+
+    <form method="post" action="{% url 'account_logout' %}">
+      {% csrf_token %}
+      {{ redirect_field }}
+      <div class="flex gap-3">
+        <a href="/"
+           class="flex-1 px-4 py-2.5 rounded-lg border border-slate-700 text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors text-center">
+          Cancelar
+        </a>
+        <button type="submit"
+                class="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-coral to-coral-500 text-white text-sm font-semibold hover:from-coral-500 hover:to-coral-600 transition-all shadow-lg shadow-coral/20">
+          {% trans "Cerrar sesión" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
