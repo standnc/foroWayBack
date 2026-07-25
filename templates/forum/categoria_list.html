@@ -4,7 +4,7 @@
 {% block content %}
 <style>[x-cloak] { display: none !important; }</style>
 
-{# ===== PALETA "BOOMBANG SUNSET" FORZADA (temporal, sobrescribe el modo oscuro heredado) ===== #}
+{# ===== PALETA DE FILAS "BOOMBANG SUNSET" (local a esta vista) ===== #}
 <style>
   .bg-sunset-base{background:linear-gradient(to bottom,#2a1606,#1c0f04,#120a02)!important}
   .bg-row-even{background:#fbf1dd!important;color:#5b3a1a!important}
@@ -30,7 +30,7 @@
   .text-cream-head{color:#fff3d6!important}
   .text-gold-num{color:#ffd700!important}
   .text-gold-word{color:#d8b98a!important}
-  .icon-active{color:#e8590c!important}
+  .icon-active{color:#e8590c!important;transition:transform .3s}
   .icon-inactive{color:#b9a483!important}
   .icon-archive{color:#b9a483!important}
   .icon-badge-active{background:#fff3d6!important;box-shadow:0 0 14px rgba(255,180,60,.5)}
@@ -44,21 +44,17 @@
   .pill-glossy{background:linear-gradient(to bottom,#ffe9a8,#ffc24d)!important;color:#7a4a12!important;border:1px solid #e0a020!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
   .badge-archive{background:rgba(94,60,28,.10)!important;color:#5e3c1c!important;border:1px solid rgba(94,60,28,.35)!important}
   .bg-empty{background:rgba(251,241,221,.55)!important}
-  .glow-sunburst{width:720px;height:720px;background:repeating-conic-gradient(from 0deg,rgba(255,215,0,.10) 0deg 5deg,rgba(255,140,40,.06) 5deg 10deg,transparent 10deg 20deg)}
-  .glow-gold{width:480px;height:480px;background:radial-gradient(circle,rgba(255,200,80,.16) 0%,transparent 70%)}
-  .glow-coral{width:560px;height:560px;background:radial-gradient(circle,rgba(255,120,40,.14) 0%,transparent 70%)}
   .group:hover .link-warm{color:#c2410c!important}
   .group:hover .link-warm-archive{color:#8a5a2e!important}
+  .group:hover .icon-active{transform:rotate(6deg) scale(1.1)}
   .link-arrow{opacity:0;transform:translateX(-4px);transition:opacity .3s,transform .3s}
   .group:hover .link-arrow{opacity:1;transform:translateX(0)}
-  .group:hover .icon-active{transform:rotate(6deg) scale(1.1)}
-  .icon-active{transition:transform .3s}
 </style>
 
-{# ======== PANEL ÁMBAR / MADERA (ambiente cálido) ======== #}
+{# ======== PANEL ÁMBAR / MADERA ======== #}
 <div class="bg-sunset-base relative -mx-4 -my-8 overflow-hidden px-4 py-10 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 lg:py-14">
 
-  {# --- Capas decorativas (sol/espiral + glows, sin imágenes externas) --- #}
+  {# Glows de ambiente (clases definidas en base.html) #}
   <div class="glow-sunburst pointer-events-none absolute -top-52 left-1/2 -translate-x-1/2 rounded-full opacity-70 blur-2xl" aria-hidden="true"></div>
   <div class="glow-gold pointer-events-none absolute -left-32 -top-32 rounded-full blur-3xl" aria-hidden="true"></div>
   <div class="glow-coral pointer-events-none absolute -bottom-44 -right-32 rounded-full blur-3xl" aria-hidden="true"></div>
@@ -87,10 +83,9 @@
     {# ============================================================ #}
     {# ======== SECCIÓN 1 · FORO CLASHBANG (ACTIVO) ======== #}
     {# ============================================================ #}
-    <section aria-labelledby="foro-clashbang-heading">
+    <section class="mb-16" aria-labelledby="foro-clashbang-heading">
       <div class="frame-active shadow-warm overflow-hidden rounded-xl">
 
-        {# Cabecera glossy naranja #}
         <div class="header-glossy-active relative overflow-hidden px-5 py-3.5 sm:px-6">
           <span class="gloss-shine pointer-events-none absolute inset-x-0 top-0 h-1/2" aria-hidden="true"></span>
           <div class="relative flex flex-wrap items-center justify-between gap-3">
@@ -101,15 +96,15 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
                 </svg>
               </span>
-              <h2 id="foro-clashbang-heading" class="font-display text-lg font-bold text-white drop-shadow sm:text-xl">Foro ClashBang</h2>
+              <div>
+                <h2 id="foro-clashbang-heading" class="font-display text-lg font-bold text-white drop-shadow sm:text-xl">Foro ClashBang</h2>
+                <p class="text-[11px] font-medium text-white/85 drop-shadow">La comunidad activa · revive la chispa</p>
+              </div>
             </div>
-            <span class="pill-glossy flex-none rounded-full px-3.5 py-1 font-display text-sm font-semibold tabular-nums">
-              {{ categorias_clashbang|length }} foros
-            </span>
+            <span class="pill-glossy flex-none rounded-full px-3.5 py-1 font-display text-sm font-semibold tabular-nums">{{ categorias_clashbang|length }} foros</span>
           </div>
         </div>
 
-        {# Filas de categoría (layout 4 columnas como immortal.net) #}
         <ul role="list" class="divide-y border-warm">
           {% for cat in categorias_clashbang %}
           <li x-data="{ shown: false }"
@@ -118,7 +113,7 @@
               class="group row-hover relative transition-all duration-500 ease-out {% if forloop.counter0|divisibleby:2 %}bg-row-even{% else %}bg-row-odd{% endif %}">
             <div class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 px-4 py-3.5 sm:px-5 md:grid-cols-[auto_minmax(0,1fr)_auto_auto] md:gap-x-0">
 
-              {# Col 1 · Icono de estado (naranja si hay actividad, gris si no) #}
+              {# Col 1 · Icono por slug (naranja si hay posts, gris si no) #}
               <div class="flex w-14 flex-none justify-center md:w-20">
                 <span class="{% if cat.num_posts > 0 %}icon-badge-active icon-active{% else %}icon-badge-muted icon-inactive{% endif %} flex h-12 w-12 items-center justify-center rounded-full ring-1 ring-black/5">
                   {% if cat.slug == 'noticias' %}
@@ -146,16 +141,11 @@
               {# Col 2 · Título + descripción #}
               <div class="min-w-0 pr-4">
                 <h3 class="font-display text-base font-semibold leading-snug sm:text-lg">
-                  <a href="{% url 'forum:categoria' cat.slug %}"
-                     class="text-warm-title link-warm after:absolute after:inset-0"
-                     aria-label="Ver categoría {{ cat.nombre }}">
+                  <a href="{% url 'forum:categoria' cat.slug %}" class="text-warm-title link-warm after:absolute after:inset-0" aria-label="Ver categoría {{ cat.nombre }}">
                     {{ cat.nombre }}<span class="link-arrow ml-1 inline-block text-stat-active" aria-hidden="true">›</span>
                   </a>
                 </h3>
-                {% if cat.descripcion %}
-                <p class="text-warm-desc mt-0.5 truncate text-sm">{{ cat.descripcion }}</p>
-                {% endif %}
-                {# Resumen compacto (móvil) #}
+                {% if cat.descripcion %}<p class="text-warm-desc mt-0.5 truncate text-sm">{{ cat.descripcion }}</p>{% endif %}
                 <p class="text-stat-label mt-1.5 flex items-center gap-2.5 text-xs font-medium md:hidden">
                   <span><span class="text-stat-active font-display tabular-nums">{{ cat.num_posts }}</span> mensajes</span>
                   <span aria-hidden="true">·</span>
@@ -163,7 +153,7 @@
                 </p>
               </div>
 
-              {# Col 3 · Stats: Mensajes | Temas (número grande Fredoka + label uppercase) #}
+              {# Col 3 · Stats: Mensajes | Temas #}
               <div class="hidden items-stretch self-stretch md:flex">
                 <div class="border-warm flex w-24 flex-col items-center justify-center border-l px-2 text-center">
                   <span class="text-stat-active font-display text-lg font-bold tabular-nums leading-none">{{ cat.num_posts }}</span>
@@ -175,19 +165,20 @@
                 </div>
               </div>
 
-              {# Col 4 · Último mensaje #}
+              {# Col 4 · Actividad / CTA (el modelo Categoria no expone último mensaje; usamos contadores reales) #}
               <div class="border-warm hidden w-60 border-l px-4 py-1 md:block">
-                {% if cat.ultimo_titulo %}
-                  <p class="text-last-label text-xs font-bold">Último mensaje por</p>
-                  <p class="text-last-title truncate text-sm">
-                    en {% if cat.ultimo_titulo|slice:":3" == "Re:" %}<span class="text-stat-active">Re:</span>{{ cat.ultimo_titulo|slice:"3:"|truncatechars:30 }}{% else %}{{ cat.ultimo_titulo|truncatechars:34 }}{% endif %}
-                  </p>
-                  <p class="text-last-meta text-xs">en <span class="text-last-today font-bold">Hoy</span> a las {{ cat.ultimo_fecha|date:"H:i:s" }}</p>
+                {% if cat.num_posts > 0 %}
+                  <a href="{% url 'forum:categoria' cat.slug %}" class="text-stat-active inline-flex items-center gap-1.5 text-sm font-bold after:absolute after:inset-0">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    Ver hilos
+                  </a>
+                  <p class="text-last-meta mt-1 text-xs"><span class="text-stat-active font-bold tabular-nums">{{ cat.num_posts }}</span> mensajes · <span class="font-bold tabular-nums">{{ cat.num_hilos }}</span> temas</p>
                 {% else %}
-                  <div class="text-muted flex items-center gap-2 py-1">
-                    <svg class="h-4 w-4 flex-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span class="text-xs italic">Sin actividad aún</span>
-                  </div>
+                  <a href="{% url 'forum:categoria' cat.slug %}" class="text-stat-active inline-flex items-center gap-1.5 text-sm font-bold after:absolute after:inset-0">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    Entrar al foro
+                  </a>
+                  <p class="text-muted mt-1 text-xs italic">Sé el primero en escribir</p>
                 {% endif %}
               </div>
             </div>
@@ -202,16 +193,12 @@
       </div>
     </section>
 
-    {# espaciador entre secciones #}
-    <div class="h-16" aria-hidden="true"></div>
-
     {# ============================================================ #}
     {# ======== SECCIÓN 2 · ANTIGUO FORO (ARCHIVO) ======== #}
     {# ============================================================ #}
     <section aria-labelledby="antiguo-foro-heading">
       <div class="frame-archive shadow-warm overflow-hidden rounded-xl">
 
-        {# Cabecera sepia/madera #}
         <div class="header-glossy-archive relative overflow-hidden px-5 py-3.5 sm:px-6">
           <span class="gloss-shine pointer-events-none absolute inset-x-0 top-0 h-1/2" aria-hidden="true"></span>
           <div class="relative flex flex-wrap items-center justify-between gap-3">
@@ -221,15 +208,15 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/>
                 </svg>
               </span>
-              <h2 id="antiguo-foro-heading" class="font-display text-lg font-bold text-white drop-shadow sm:text-xl">Antiguo Foro</h2>
+              <div>
+                <h2 id="antiguo-foro-heading" class="font-display text-lg font-bold text-white drop-shadow sm:text-xl">Antiguo Foro</h2>
+                <p class="text-[11px] font-medium text-white/80 drop-shadow">Archivo histórico · solo lectura</p>
+              </div>
             </div>
-            <span class="pill-glossy flex-none rounded-full px-3.5 py-1 font-display text-sm font-semibold tabular-nums">
-              {{ categorias_historicas|length }} foros
-            </span>
+            <span class="pill-glossy flex-none rounded-full px-3.5 py-1 font-display text-sm font-semibold tabular-nums">{{ categorias_historicas|length }} foros</span>
           </div>
         </div>
 
-        {# Filas de archivo #}
         <ul role="list" class="divide-y border-warm-archive">
           {% for cat in categorias_historicas %}
           <li x-data="{ shown: false }"
@@ -238,31 +225,22 @@
               class="group row-hover-archive relative transition-all duration-500 ease-out {% if forloop.counter0|divisibleby:2 %}bg-row-archive-even{% else %}bg-row-archive-odd{% endif %}">
             <div class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 px-4 py-3.5 opacity-80 sm:px-5 md:grid-cols-[auto_minmax(0,1fr)_auto_auto] md:gap-x-0">
 
-              {# Col 1 · Icono (gris, archivo) #}
               <div class="flex w-14 flex-none justify-center md:w-20">
                 <span class="icon-badge-muted icon-archive flex h-12 w-12 items-center justify-center rounded-full ring-1 ring-black/5">
                   <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                 </span>
               </div>
 
-              {# Col 2 · Título + badge + descripción #}
               <div class="min-w-0 pr-4">
                 <div class="flex flex-wrap items-center gap-2">
                   <h3 class="font-display text-base font-semibold leading-snug sm:text-lg">
-                    <a href="{% url 'forum:categoria' cat.slug %}"
-                       class="text-warm-title link-warm-archive after:absolute after:inset-0"
-                       aria-label="Ver categoría archivada {{ cat.nombre }}">
+                    <a href="{% url 'forum:categoria' cat.slug %}" class="text-warm-title link-warm-archive after:absolute after:inset-0" aria-label="Ver categoría archivada {{ cat.nombre }}">
                       {{ cat.nombre }}<span class="link-arrow ml-1 inline-block text-stat-archive" aria-hidden="true">›</span>
                     </a>
                   </h3>
-                  <span class="badge-archive inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-                    <span aria-hidden="true">🔒</span> Solo Lectura
-                  </span>
+                  <span class="badge-archive inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"><span aria-hidden="true">🔒</span> Solo Lectura</span>
                 </div>
-                {% if cat.descripcion %}
-                <p class="text-warm-desc mt-0.5 truncate text-sm">{{ cat.descripcion }}</p>
-                {% endif %}
-                {# Resumen compacto (móvil) #}
+                {% if cat.descripcion %}<p class="text-warm-desc mt-0.5 truncate text-sm">{{ cat.descripcion }}</p>{% endif %}
                 <p class="text-stat-label mt-1.5 flex items-center gap-2.5 text-xs font-medium md:hidden">
                   <span><span class="font-display tabular-nums">{{ cat.num_posts }}</span> mensajes</span>
                   <span aria-hidden="true">·</span>
@@ -272,7 +250,6 @@
                 </p>
               </div>
 
-              {# Col 3 · Stats (sepia) #}
               <div class="hidden items-stretch self-stretch md:flex">
                 <div class="border-warm-archive flex w-24 flex-col items-center justify-center border-l px-2 text-center">
                   <span class="text-stat-archive font-display text-lg font-bold tabular-nums leading-none">{{ cat.num_posts }}</span>
@@ -284,7 +261,6 @@
                 </div>
               </div>
 
-              {# Col 4 · Estado archivado #}
               <div class="border-warm-archive hidden w-60 border-l px-4 py-1 md:block">
                 <div class="text-muted flex items-center gap-2">
                   <svg class="h-4 w-4 flex-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
