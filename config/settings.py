@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.discord",
     "allauth.socialaccount.providers.github",
+    "axes",
     "csp",
     "storages",
     # Local
@@ -51,6 +52,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "csp.middleware.CSPMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -88,6 +90,7 @@ DATABASES = {
 AUTH_USER_MODEL = "accounts.User"
 
 AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
@@ -109,7 +112,10 @@ ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_EMAIL_VERIFICATION = "optional"
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
+ACCOUNT_EMAIL_CONFIRMATION_HMAC = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_PREVENT_ENUMERATION = True
 ACCOUNT_SESSION_REMEMBER = True
 
@@ -128,6 +134,22 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_ADAPTER = "forum.adapter.ForumSocialAccountAdapter"
+
+# ============ EMAIL (SMTP con Resend) ============
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.resend.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "resend")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "onboarding@resend.dev")
+AXES_ENABLED = True
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1
+AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True
+AXES_RESET_ON_SUCCESS = True
+AXES_ONLY_USER_FAILURES = False
 
 # ============ STORAGE (R2 o local) ============
 USE_R2 = os.getenv("USE_R2", "False").lower() == "true"
@@ -181,10 +203,26 @@ CONTENT_SECURITY_POLICY = {
             "https://cdn.discordapp.com",
             "https://static.clashbang.forum",
         ],
-        "connect-src": ["'self'", "https://accounts.google.com"],
+        "connect-src": [
+            "'self'",
+            "https://accounts.google.com",
+            "https://discord.com",
+            "https://github.com",
+            "https://api.github.com",
+        ],
         "font-src": ["'self'", "https://fonts.gstatic.com"],
-        "frame-src": ["https://accounts.google.com"],
-        "form-action": ["'self'"],
+        "frame-src": [
+            "https://accounts.google.com",
+            "https://discord.com",
+            "https://github.com",
+        ],
+        "form-action": [
+            "'self'",
+            "https://accounts.google.com",
+            "https://discord.com",
+            "https://github.com",
+            "https://discordapp.com",
+        ],
     },
 }
 
@@ -211,21 +249,79 @@ if not DEBUG:
     CSRF_TRUSTED_ORIGINS = ["https://clashbang.forum", "https://www.clashbang.forum", "https://foro.clashbang.forum"]
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     ALLAUTH_TRUSTED_PROXY_COUNT = 2
+    CSRF_COOKIE_DOMAIN = ".clashbang.forum"
 ACCOUNT_ADAPTER = "forum.adapter.ForumAccountAdapter"
-DEFAULT_FROM_EMAIL = "noreply@clashbang.forum"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@clashbang.forum")
+
+# ============ LOGGING ============
+_LOG_LEVEL = "DEBUG" if DEBUG else "WARNING"
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{asctime}  {levelname:8s}  {name:30s}  {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{asctime}  {levelname:8s}  {message}",
+            "style": "{",
+        },
+    },
+    "filters": {
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse",
+        },
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
+        },
+    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "/var/log/django/foro.log",
+            "maxBytes": 5 * 1024 * 1024,  # 5 MB
+            "backupCount": 5,
+            "formatter": "verbose",
+            "filters": [],
+        },
+        "mail_admins": {
+            "class": "django.utils.log.AdminEmailHandler",
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "include_html": False,
         },
     },
     "loggers": {
+        "django": {
+            "handlers": ["file", "console"],
+            "level": _LOG_LEVEL,
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["file", "mail_admins"],
+            "level": "ERROR",
+            "propagate": False,
+        },
         "django.security.csrf": {
             "handlers": ["console"],
             "level": "DEBUG",
+            "propagate": False,
+        },
+        "forum": {
+            "handlers": ["file", "console"],
+            "level": _LOG_LEVEL,
+            "propagate": False,
+        },
+        "accounts": {
+            "handlers": ["file", "console"],
+            "level": _LOG_LEVEL,
+            "propagate": False,
         },
     },
 }

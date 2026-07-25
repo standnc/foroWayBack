@@ -24,6 +24,7 @@ db.sqlite3
 # OpenCode (local dev only)
 .opencode/
 opencode.jsonc
+.commandcode/
 
 # OS
 .DS_Store

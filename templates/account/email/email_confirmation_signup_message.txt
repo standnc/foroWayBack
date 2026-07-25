@@ -1,0 +1,13 @@
+{% load i18n %}{% blocktrans with site_name=current_site.name site_domain=current_site.domain %}¡Bienvenido a {{ site_name }}!
+
+Gracias por registrarte en el foro retro de BoomBang. Para activar tu cuenta, confirma tu dirección de correo electrónico haciendo clic en el siguiente enlace:
+
+{{ activate_url }}
+
+Este enlace expira en 24 horas. Si no solicitaste este registro, puedes ignorar este mensaje; el enlace dejará de ser válido automáticamente.
+
+Por seguridad, no compartas este enlace con nadie. El equipo de {{ site_name }} nunca te pedirá tu contraseña ni este enlace de confirmación.
+
+Atentamente,
+El equipo de {{ site_name }}
+{{ site_domain }}{% endblocktrans %}

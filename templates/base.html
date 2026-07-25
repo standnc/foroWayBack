@@ -96,6 +96,12 @@
              class="text-sm font-medium text-slate-200 hover:text-boom transition-colors">
             Buscar
           </a>
+          {% if user.is_staff or user.is_superuser %}
+          <a href="{% url 'forum:moderation_panel' %}"
+             class="text-sm font-medium text-amber-400 hover:text-amber-300 transition-colors">
+            Moderar
+          </a>
+          {% endif %}
         </div>
 
         <div class="flex items-center gap-2">
@@ -159,6 +165,9 @@
         <a href="/" class="block px-3 py-2 rounded-lg text-sm font-medium text-slate-200 hover:bg-slate-800 hover:text-boom transition-colors">Inicio</a>
         <a href="{% url 'forum:categorias' %}" class="block px-3 py-2 rounded-lg text-sm font-medium text-slate-200 hover:bg-slate-800 hover:text-boom transition-colors">Categorías</a>
         <a href="{% url 'forum:buscar' %}" class="block px-3 py-2 rounded-lg text-sm font-medium text-slate-200 hover:bg-slate-800 hover:text-boom transition-colors">Buscar</a>
+        {% if user.is_staff or user.is_superuser %}
+        <a href="{% url 'forum:moderation_panel' %}" class="block px-3 py-2 rounded-lg text-sm font-medium text-amber-400 hover:bg-slate-800 transition-colors">Panel de Moderación</a>
+        {% endif %}
         {% if user.is_authenticated %}
         <hr class="border-slate-700/60 my-2">
         <a href="{% url 'forum:perfil' user.username %}" class="block px-3 py-2 rounded-lg text-sm font-medium text-slate-200 hover:bg-slate-800 hover:text-boom transition-colors">Mi perfil</a>

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Panel de Moderación — BoomBang Foro{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-3xl font-bold text-white font-display">Panel de Moderación</h1>
+    <div class="flex gap-3">
+      <a href="{% url 'forum:historial_moderacion' %}" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm transition-colors">Historial</a>
+      <a href="{% url 'forum:crear_warning' %}" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm transition-colors">+ Advertencia</a>
+      <a href="{% url 'forum:crear_ban' %}" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm transition-colors">+ Ban</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+    <div class="bg-slate-800 rounded-xl p-4 text-center">
+      <div class="text-3xl font-bold text-boom mb-1">{{ stats.pendientes }}</div>
+      <div class="text-xs text-slate-400">Pendientes</div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-4 text-center">
+      <div class="text-3xl font-bold text-boom-light mb-1">{{ stats.reportes_hoy }}</div>
+      <div class="text-xs text-slate-400">Hoy</div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-4 text-center">
+      <div class="text-3xl font-bold text-amber-400 mb-1">{{ stats.reportes_semana }}</div>
+      <div class="text-xs text-slate-400">Esta semana</div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-4 text-center">
+      <div class="text-3xl font-bold text-amber-400 mb-1">{{ stats.reportes_mes }}</div>
+      <div class="text-xs text-slate-400">Este mes</div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-4 text-center">
+      <div class="text-3xl font-bold text-yellow-400 mb-1">{{ stats.warnings }}</div>
+      <div class="text-xs text-slate-400">Warnings</div>
+    </div>
+    <div class="bg-slate-800 rounded-xl p-4 text-center">
+      <div class="text-3xl font-bold text-red-400 mb-1">{{ stats.bans_activos }}</div>
+      <div class="text-xs text-slate-400">Bans activos</div>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-8">
+    <section>
+      <h2 class="text-xl font-bold text-white font-display mb-4">Reportes Pendientes</h2>
+      {% if reportes_pendientes %}
+        {% for report in reportes_pendientes %}
+          <div class="bg-slate-800 rounded-xl p-4 mb-3 border border-slate-700">
+            <div class="flex items-start justify-between mb-2">
+              <span class="text-xs bg-red-900/50 text-red-300 px-2 py-0.5 rounded-full">{{ report.get_estado_display }}</span>
+              <span class="text-xs text-slate-500">{{ report.creado|timesince }}</span>
+            </div>
+            <p class="text-sm text-slate-300 mb-1">Reportado por: <span class="text-white">{{ report.reportado_por.email }}</span></p>
+            {% if report.motivo %}
+              <p class="text-sm text-slate-400 mb-3">{{ report.descripcion|truncatewords:30 }}</p>
+            {% endif %}
+            <div class="flex gap-2 items-center text-xs text-slate-500 mb-3">
+              {% if report.post %}
+                <a href="{% url 'forum:hilo' report.post.hilo.pk %}#post-{{ report.post.pk }}" class="text-boom hover:underline">Ver post</a>
+              {% endif %}
+              {% if report.hilo %}
+                <a href="{% url 'forum:hilo' report.hilo.pk %}" class="text-boom hover:underline">Ver hilo</a>
+              {% endif %}
+            </div>
+            <a href="{% url 'forum:resolver_report' report.pk %}" class="inline-block px-4 py-1.5 bg-boom hover:bg-boom-dark text-white rounded-lg text-sm transition-colors">Resolver</a>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="bg-slate-800 rounded-xl p-8 text-center">
+          <p class="text-slate-400">No hay reportes pendientes</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-white font-display mb-4">Últimas Acciones</h2>
+      <div class="bg-slate-800 rounded-xl p-4">
+        {% if ultimas_acciones %}
+          {% for log in ultimas_acciones %}
+            <div class="flex items-start gap-3 py-2 {% if not forloop.last %}border-b border-slate-700{% endif %}">
+              <span class="text-xs {% if 'ban' in log.accion %}text-red-400{% elif 'warn' in log.accion %}text-amber-400{% else %}text-boom{% endif %} mt-1">●</span>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-white truncate">{{ log.descripcion }}</p>
+                <p class="text-xs text-slate-500">{{ log.moderador.email }} — {{ log.creado|timesince }}</p>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-slate-400 text-sm text-center py-4">Sin acciones registradas</p>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
