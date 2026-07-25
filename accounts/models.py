@@ -9,6 +9,7 @@ class User(AbstractUser):
     Los usuarios del scrape histórico NO tienen cuenta aquí — se muestran como texto plano.
     """
     email = models.EmailField(unique=True, verbose_name="email")
+    display_name = models.CharField(max_length=100, blank=True, verbose_name="nombre público")
     bio = models.TextField(blank=True, max_length=500, verbose_name="biografía")
     firma = models.CharField(max_length=300, blank=True, verbose_name="firma")
     avatar_url = models.URLField(blank=True, verbose_name="avatar URL")
@@ -26,4 +27,16 @@ class User(AbstractUser):
         ordering = ["-date_joined"]
 
     def __str__(self):
-        return self.email
+        return self.display_name or self.email
+
+    @property
+    def num_posts(self):
+        return self.posts.count()
+
+    @property
+    def num_hilos(self):
+        return self.hilos.count()
+
+    @property
+    def num_respuestas(self):
+        return self.posts.exclude(orden=0).count()
