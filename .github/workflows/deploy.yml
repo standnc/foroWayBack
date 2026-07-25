@@ -19,9 +19,8 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          # Añadir el VPS a los hosts conocidos para evitar bloqueos
           mkdir -p ~/.ssh
           ssh-keyscan -H 172.239.238.6 >> ~/.ssh/known_hosts
           
-          # Ejecutar el script de despliegue en el VPS
+          # Ejecutar el script que YA está en el repo (tras git reset --hard)
           ssh -o StrictHostKeyChecking=no admin@172.239.238.6 "cd /var/www/foroWayBack && ./deploy.sh"
