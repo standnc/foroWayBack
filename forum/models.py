@@ -13,6 +13,7 @@ class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True)
     es_clashbang = models.BooleanField(default=False, help_text="True = Foro ClashBang (nuevo), False = Archivo Histórico")
+    orden = models.PositiveIntegerField(default=0, help_text="Orden de visualización (menor = primero)")
     # Contadores (actualizados por señales o save() de Hilo/Post)
     num_hilos = models.PositiveIntegerField(default=0, editable=False)
     num_posts = models.PositiveIntegerField(default=0, editable=False)
