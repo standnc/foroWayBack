@@ -4,143 +4,188 @@
 {% block content %}
 <style>[x-cloak] { display: none !important; }</style>
 
-{# ======== PANEL ÁMBAR AMBIENTE (llena el <main> del base) ======== #}
-<div class="relative -mx-4 -my-8 overflow-hidden bg-gradient-to-b from-[#2a1606] via-[#1c0f04] to-[#120a02] px-4 py-10 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 lg:py-14">
+{# ===== PALETA "BOOMBANG SUNSET" FORZADA (temporal, sobrescribe el modo oscuro heredado) ===== #}
+<style>
+  .bg-sunset-base{background:linear-gradient(to bottom,#2a1606,#1c0f04,#120a02)!important}
+  .bg-row-even{background:#fbf1dd!important;color:#5b3a1a!important}
+  .bg-row-odd{background:#f6e8cd!important;color:#5b3a1a!important}
+  .bg-row-archive-even{background:#efe6d2!important;color:#5b3a1a!important}
+  .bg-row-archive-odd{background:#e8dcc2!important;color:#5b3a1a!important}
+  .row-hover:hover{background:#fff8ea!important}
+  .row-hover-archive:hover{background:#f3e7cd!important}
+  .header-glossy-active{background:linear-gradient(to right,#ff9a3c,#ff7a18,#e8590c)!important}
+  .header-glossy-archive{background:linear-gradient(to right,#b07a45,#8a5a2e,#5e3c1c)!important}
+  .gloss-shine{background:linear-gradient(to bottom,rgba(255,255,255,.35),rgba(255,255,255,0))!important}
+  .text-warm-title{color:#5b3a1a!important}
+  .text-warm-desc{color:#8a6d4f!important}
+  .text-stat-active{color:#e8590c!important}
+  .text-stat-archive{color:#8a5a2e!important}
+  .text-stat-label{color:#8a6d4f!important}
+  .text-last-label{color:#8a6d4f!important}
+  .text-last-title{color:#5b3a1a!important}
+  .text-last-meta{color:#8a6d4f!important}
+  .text-last-today{color:#c2410c!important}
+  .text-muted{color:#b9a483!important}
+  .text-eyebrow{color:#ffcf6b!important}
+  .text-cream-head{color:#fff3d6!important}
+  .text-gold-num{color:#ffd700!important}
+  .text-gold-word{color:#d8b98a!important}
+  .icon-active{color:#e8590c!important}
+  .icon-inactive{color:#b9a483!important}
+  .icon-archive{color:#b9a483!important}
+  .icon-badge-active{background:#fff3d6!important;box-shadow:0 0 14px rgba(255,180,60,.5)}
+  .icon-badge-muted{background:#f3ead6!important}
+  .border-warm{border-color:#e7d3ad!important}
+  .border-warm-archive{border-color:#ddd0b2!important}
+  .border-warm-dashed{border-color:rgba(216,185,138,.55)!important}
+  .frame-active{border:1px solid #f0a850!important}
+  .frame-archive{border:1px solid #b07a45!important}
+  .shadow-warm{box-shadow:0 14px 38px rgba(0,0,0,.45)}
+  .pill-glossy{background:linear-gradient(to bottom,#ffe9a8,#ffc24d)!important;color:#7a4a12!important;border:1px solid #e0a020!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+  .badge-archive{background:rgba(94,60,28,.10)!important;color:#5e3c1c!important;border:1px solid rgba(94,60,28,.35)!important}
+  .bg-empty{background:rgba(251,241,221,.55)!important}
+  .glow-sunburst{width:720px;height:720px;background:repeating-conic-gradient(from 0deg,rgba(255,215,0,.10) 0deg 5deg,rgba(255,140,40,.06) 5deg 10deg,transparent 10deg 20deg)}
+  .glow-gold{width:480px;height:480px;background:radial-gradient(circle,rgba(255,200,80,.16) 0%,transparent 70%)}
+  .glow-coral{width:560px;height:560px;background:radial-gradient(circle,rgba(255,120,40,.14) 0%,transparent 70%)}
+  .group:hover .link-warm{color:#c2410c!important}
+  .group:hover .link-warm-archive{color:#8a5a2e!important}
+  .link-arrow{opacity:0;transform:translateX(-4px);transition:opacity .3s,transform .3s}
+  .group:hover .link-arrow{opacity:1;transform:translateX(0)}
+  .group:hover .icon-active{transform:rotate(6deg) scale(1.1)}
+  .icon-active{transition:transform .3s}
+</style>
 
-  {# --- Capas decorativas de fondo (sin imágenes externas) --- #}
-  <div class="pointer-events-none absolute -top-52 left-1/2 h-[720px] w-[720px] -translate-x-1/2 rounded-full bg-[repeating-conic-gradient(from_0deg,rgba(255,215,0,0.10)_0deg_5deg,rgba(255,107,53,0.06)_5deg_10deg,transparent_10deg_20deg)] opacity-70 blur-2xl" aria-hidden="true"></div>
-  <div class="pointer-events-none absolute -left-32 -top-32 h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(255,215,0,0.14)_0%,transparent_70%)] blur-3xl" aria-hidden="true"></div>
-  <div class="pointer-events-none absolute -bottom-44 -right-32 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle,rgba(255,107,53,0.13)_0%,transparent_70%)] blur-3xl" aria-hidden="true"></div>
+{# ======== PANEL ÁMBAR / MADERA (ambiente cálido) ======== #}
+<div class="bg-sunset-base relative -mx-4 -my-8 overflow-hidden px-4 py-10 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 lg:py-14">
 
-  {# --- Contenido real --- #}
+  {# --- Capas decorativas (sol/espiral + glows, sin imágenes externas) --- #}
+  <div class="glow-sunburst pointer-events-none absolute -top-52 left-1/2 -translate-x-1/2 rounded-full opacity-70 blur-2xl" aria-hidden="true"></div>
+  <div class="glow-gold pointer-events-none absolute -left-32 -top-32 rounded-full blur-3xl" aria-hidden="true"></div>
+  <div class="glow-coral pointer-events-none absolute -bottom-44 -right-32 rounded-full blur-3xl" aria-hidden="true"></div>
+
   <div class="relative z-10 mx-auto max-w-5xl">
 
     {# ======== CABECERA DE PÁGINA ======== #}
     <header class="mb-10">
-      <p class="text-xs font-bold uppercase tracking-[0.3em] text-gold">Comunidad · Foro ClashBang</p>
+      <p class="text-eyebrow text-xs font-bold uppercase tracking-widest">Comunidad · Foro ClashBang</p>
       <div class="mt-3 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
-        <h1 class="flex items-center gap-3 font-display text-4xl font-bold tracking-tight text-[#fff3d6] drop-shadow-lg lg:text-5xl">
+        <h1 class="text-cream-head flex items-center gap-3 font-display text-4xl font-bold tracking-tight drop-shadow-lg lg:text-5xl">
           Categorías
-          <svg class="h-9 w-9 flex-none text-gold drop-shadow lg:h-11 lg:w-11" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <svg class="text-gold-num h-9 w-9 flex-none drop-shadow lg:h-11 lg:w-11" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l1.42-1.42M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
           </svg>
         </h1>
         <p class="flex items-baseline gap-2">
           {% with total_clashbang=categorias_clashbang|length total_historicas=categorias_historicas|length %}
-            <span class="font-display text-3xl font-bold tabular-nums text-gold drop-shadow">{{ total_clashbang|add:total_historicas }}</span>
-            <span class="text-sm font-medium text-[#d8b98a]">categorías</span>
+            <span class="text-gold-num font-display text-3xl font-bold tabular-nums drop-shadow">{{ total_clashbang|add:total_historicas }}</span>
+            <span class="text-gold-word text-sm font-medium">categorías</span>
           {% endwith %}
         </p>
       </div>
     </header>
 
+    {# ============================================================ #}
     {# ======== SECCIÓN 1 · FORO CLASHBANG (ACTIVO) ======== #}
-    <section class="mb-12" aria-labelledby="foro-clashbang-heading">
-      <div class="overflow-hidden rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.5)] ring-1 ring-black/25">
+    {# ============================================================ #}
+    <section aria-labelledby="foro-clashbang-heading">
+      <div class="frame-active shadow-warm overflow-hidden rounded-xl">
 
-        {# Cabecera glossy #}
-        <div class="relative overflow-hidden bg-gradient-to-r from-[#ff9a3c] via-[#ff7a18] to-[#e8590c] px-5 py-4 sm:px-6">
-          <span class="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-white/20" aria-hidden="true"></span>
+        {# Cabecera glossy naranja #}
+        <div class="header-glossy-active relative overflow-hidden px-5 py-3.5 sm:px-6">
+          <span class="gloss-shine pointer-events-none absolute inset-x-0 top-0 h-1/2" aria-hidden="true"></span>
           <div class="relative flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-3.5">
-              <span class="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-white/30 bg-white/15 shadow-inner">
-                <svg class="h-6 w-6 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <div class="flex items-center gap-3">
+              <span class="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-white/40 bg-white/20 shadow-inner">
+                <svg class="h-5 w-5 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.24 17 7.343 19 9 20 11 20 13a8 8 0 01-2.343 5.657z"/>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
                 </svg>
               </span>
-              <div>
-                <h2 id="foro-clashbang-heading" class="font-display text-xl font-semibold text-white drop-shadow sm:text-2xl">Foro ClashBang</h2>
-                <p class="text-xs font-medium text-[#fff7ec]/85 drop-shadow">La comunidad activa · revive la chispa</p>
-              </div>
+              <h2 id="foro-clashbang-heading" class="font-display text-lg font-bold text-white drop-shadow sm:text-xl">Foro ClashBang</h2>
             </div>
-            <span class="flex-none rounded-full bg-black/15 px-3.5 py-1.5 font-display text-sm font-medium tabular-nums text-white/90 shadow-inner">
-              {{ categorias_clashbang|length }} categorías
+            <span class="pill-glossy flex-none rounded-full px-3.5 py-1 font-display text-sm font-semibold tabular-nums">
+              {{ categorias_clashbang|length }} foros
             </span>
           </div>
         </div>
 
-        {# Filas de categoría #}
-        <ul role="list" class="divide-y divide-[#e7d3ad]">
+        {# Filas de categoría (layout 4 columnas como immortal.net) #}
+        <ul role="list" class="divide-y border-warm">
           {% for cat in categorias_clashbang %}
           <li x-data="{ shown: false }"
               x-init="if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) { shown = true; } else { const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) { setTimeout(() => { shown = true; }, {{ forloop.counter0 }} * 60); io.disconnect(); } }); }, { threshold: 0.08 }); io.observe($el); }"
               :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'"
-              class="group relative transition-all duration-500 ease-out {% if forloop.counter0|divisibleby:2 %}bg-[#fbf1dd]{% else %}bg-[#f6e8cd]{% endif %} hover:bg-[#fdf7e8]">
-            <div class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 px-4 py-4 sm:px-5 md:grid-cols-[auto_minmax(0,1fr)_auto_auto] md:gap-x-5">
+              class="group row-hover relative transition-all duration-500 ease-out {% if forloop.counter0|divisibleby:2 %}bg-row-even{% else %}bg-row-odd{% endif %}">
+            <div class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 px-4 py-3.5 sm:px-5 md:grid-cols-[auto_minmax(0,1fr)_auto_auto] md:gap-x-0">
 
-              {# Zona 1 · Icono de estado #}
-              <div class="relative flex h-12 w-12 flex-none items-center justify-center rounded-full bg-[#fff3d6] ring-1 ring-[#f0dcae] transition-transform duration-300 {% if cat.num_posts > 0 %}text-[#e8590c] shadow-[0_0_16px_rgba(255,215,0,0.45)] group-hover:rotate-6 group-hover:scale-110{% else %}text-[#b9a483] opacity-60{% endif %}">
-                {% if cat.slug == 'noticias' %}
-                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
-                {% elif cat.slug == 'general' %}
-                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                {% elif cat.slug == 'bleuga-beach' %}
-                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 12a10.06 10.06 0 0 0-20 0ZM12 12v8a2 2 0 0 0 4 0M12 2v1"/></svg>
-                {% elif cat.slug == 'soporte' %}
-                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-                {% elif cat.slug == 'minijuegos' %}
-                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h4M8 10v4M15 13h.01M18 11h.01M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>
-                {% elif cat.slug == 'off-topic' %}
-                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                {% elif cat.slug == 'apelaciones' %}
-                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                {% elif cat.slug == 'eventos' %}
-                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                {% else %}
-                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                {% endif %}
+              {# Col 1 · Icono de estado (naranja si hay actividad, gris si no) #}
+              <div class="flex w-14 flex-none justify-center md:w-20">
+                <span class="{% if cat.num_posts > 0 %}icon-badge-active icon-active{% else %}icon-badge-muted icon-inactive{% endif %} flex h-12 w-12 items-center justify-center rounded-full ring-1 ring-black/5">
+                  {% if cat.slug == 'noticias' %}
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                  {% elif cat.slug == 'general' %}
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                  {% elif cat.slug == 'bleuga-beach' %}
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 12a10.06 10.06 0 0 0-20 0ZM12 12v8a2 2 0 0 0 4 0M12 2v1"/></svg>
+                  {% elif cat.slug == 'soporte' %}
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                  {% elif cat.slug == 'minijuegos' %}
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h4M8 10v4M15 13h.01M18 11h.01M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>
+                  {% elif cat.slug == 'off-topic' %}
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  {% elif cat.slug == 'apelaciones' %}
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  {% elif cat.slug == 'eventos' %}
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  {% else %}
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                  {% endif %}
+                </span>
               </div>
 
-              {# Zona 2 · Título + descripción #}
-              <div class="min-w-0">
-                <h3 class="font-display text-lg leading-snug">
+              {# Col 2 · Título + descripción #}
+              <div class="min-w-0 pr-4">
+                <h3 class="font-display text-base font-semibold leading-snug sm:text-lg">
                   <a href="{% url 'forum:categoria' cat.slug %}"
-                     class="text-[#5b3a1a] transition-colors duration-200 group-hover:text-[#e8590c] after:absolute after:inset-0"
+                     class="text-warm-title link-warm after:absolute after:inset-0"
                      aria-label="Ver categoría {{ cat.nombre }}">
-                    {{ cat.nombre }}
-                    <span class="ml-1 inline-block -translate-x-1 text-[#e8590c] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" aria-hidden="true">›</span>
+                    {{ cat.nombre }}<span class="link-arrow ml-1 inline-block text-stat-active" aria-hidden="true">›</span>
                   </a>
                 </h3>
                 {% if cat.descripcion %}
-                <p class="mt-0.5 truncate text-sm text-[#8a6d4f]">{{ cat.descripcion }}</p>
+                <p class="text-warm-desc mt-0.5 truncate text-sm">{{ cat.descripcion }}</p>
                 {% endif %}
-                {# Resumen compacto (solo móvil) #}
-                <p class="mt-1.5 flex items-center gap-2.5 text-xs font-medium text-[#a98c63] md:hidden">
-                  <span><span class="font-display tabular-nums text-[#e8590c]">{{ cat.num_hilos }}</span> temas</span>
+                {# Resumen compacto (móvil) #}
+                <p class="text-stat-label mt-1.5 flex items-center gap-2.5 text-xs font-medium md:hidden">
+                  <span><span class="text-stat-active font-display tabular-nums">{{ cat.num_posts }}</span> mensajes</span>
                   <span aria-hidden="true">·</span>
-                  <span><span class="font-display tabular-nums text-[#a16207]">{{ cat.num_posts }}</span> mensajes</span>
+                  <span><span class="font-display tabular-nums">{{ cat.num_hilos }}</span> temas</span>
                 </p>
               </div>
 
-              {# Zona 3 · Stats (desktop) #}
+              {# Col 3 · Stats: Mensajes | Temas (número grande Fredoka + label uppercase) #}
               <div class="hidden items-stretch self-stretch md:flex">
-                <div class="flex w-20 flex-col items-center justify-center border-l border-[#e7d3ad] px-2 text-center">
-                  <span class="font-display text-xl font-semibold tabular-nums text-[#e8590c]">{{ cat.num_hilos }}</span>
-                  <span class="text-[10px] font-semibold uppercase tracking-widest text-[#a98c63]">Temas</span>
+                <div class="border-warm flex w-24 flex-col items-center justify-center border-l px-2 text-center">
+                  <span class="text-stat-active font-display text-lg font-bold tabular-nums leading-none">{{ cat.num_posts }}</span>
+                  <span class="text-stat-label mt-1 text-[10px] font-semibold uppercase tracking-wider">Mensajes</span>
                 </div>
-                <div class="flex w-20 flex-col items-center justify-center border-l border-[#e7d3ad] px-2 text-center">
-                  <span class="font-display text-xl font-semibold tabular-nums text-[#a16207]">{{ cat.num_posts }}</span>
-                  <span class="text-[10px] font-semibold uppercase tracking-widest text-[#a98c63]">Mensajes</span>
+                <div class="border-warm flex w-20 flex-col items-center justify-center border-l px-2 text-center">
+                  <span class="text-stat-active font-display text-lg font-bold tabular-nums leading-none">{{ cat.num_hilos }}</span>
+                  <span class="text-stat-label mt-1 text-[10px] font-semibold uppercase tracking-wider">Temas</span>
                 </div>
               </div>
 
-              {# Zona 4 · Último mensaje (desktop) #}
-              <div class="hidden w-56 border-l border-[#e7d3ad] pl-4 md:block">
+              {# Col 4 · Último mensaje #}
+              <div class="border-warm hidden w-60 border-l px-4 py-1 md:block">
                 {% if cat.ultimo_titulo %}
-                  <p class="text-[11px] font-medium uppercase tracking-wide text-[#a98c63]">Último mensaje por</p>
-                  <p class="truncate text-sm font-semibold text-[#5b3a1a]">
-                    {% if cat.ultimo_titulo|slice:":3" == "Re:" %}
-                      <span class="text-[#e8590c]">Re:</span>{{ cat.ultimo_titulo|slice:"3:"|truncatechars:38 }}
-                    {% else %}
-                      {{ cat.ultimo_titulo|truncatechars:42 }}
-                    {% endif %}
+                  <p class="text-last-label text-xs font-bold">Último mensaje por</p>
+                  <p class="text-last-title truncate text-sm">
+                    en {% if cat.ultimo_titulo|slice:":3" == "Re:" %}<span class="text-stat-active">Re:</span>{{ cat.ultimo_titulo|slice:"3:"|truncatechars:30 }}{% else %}{{ cat.ultimo_titulo|truncatechars:34 }}{% endif %}
                   </p>
-                  <p class="truncate text-xs text-[#8a6d4f]">{{ cat.ultimo_autor|default:"—" }}</p>
-                  <p class="text-xs font-semibold text-[#e8590c]">Hoy a las {{ cat.ultimo_fecha|date:"H:i" }}</p>
+                  <p class="text-last-meta text-xs">en <span class="text-last-today font-bold">Hoy</span> a las {{ cat.ultimo_fecha|date:"H:i:s" }}</p>
                 {% else %}
-                  <div class="flex items-center gap-2 text-[#b9a483]">
-                    <svg class="h-4 w-4 flex-none opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <div class="text-muted flex items-center gap-2 py-1">
+                    <svg class="h-4 w-4 flex-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span class="text-xs italic">Sin actividad aún</span>
                   </div>
                 {% endif %}
@@ -148,108 +193,111 @@
             </div>
           </li>
           {% empty %}
-          <li class="border-2 border-dashed border-[#d8b98a]/40 bg-[#fbf1dd]/60 px-6 py-12 text-center">
-            <svg class="mx-auto h-10 w-10 text-[#d8b98a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-5.586a1 1 0 00-.707.293l-1.414 1.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 006.586 13H4"/></svg>
-            <p class="mt-3 text-sm font-medium text-[#a98c63]">Aún no hay categorías activas en esta sección.</p>
+          <li class="bg-empty border-warm-dashed border-2 border-dashed px-6 py-12 text-center">
+            <svg class="text-muted mx-auto h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-5.586a1 1 0 00-.707.293l-1.414 1.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 006.586 13H4"/></svg>
+            <p class="text-stat-label mt-3 text-sm font-medium">Aún no hay categorías activas en esta sección.</p>
           </li>
           {% endfor %}
         </ul>
       </div>
     </section>
 
+    {# espaciador entre secciones #}
+    <div class="h-16" aria-hidden="true"></div>
+
+    {# ============================================================ #}
     {# ======== SECCIÓN 2 · ANTIGUO FORO (ARCHIVO) ======== #}
+    {# ============================================================ #}
     <section aria-labelledby="antiguo-foro-heading">
-      <div class="overflow-hidden rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.45)] ring-1 ring-black/25">
+      <div class="frame-archive shadow-warm overflow-hidden rounded-xl">
 
         {# Cabecera sepia/madera #}
-        <div class="relative overflow-hidden bg-gradient-to-r from-[#b07a45] via-[#8a5a2e] to-[#5e3c1c] px-5 py-4 sm:px-6">
-          <span class="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-white/15" aria-hidden="true"></span>
+        <div class="header-glossy-archive relative overflow-hidden px-5 py-3.5 sm:px-6">
+          <span class="gloss-shine pointer-events-none absolute inset-x-0 top-0 h-1/2" aria-hidden="true"></span>
           <div class="relative flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-3.5">
-              <span class="flex h-11 w-11 flex-none items-center justify-center rounded-full border border-white/25 bg-white/10 shadow-inner">
-                <svg class="h-6 w-6 text-[#fff7ec] drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <div class="flex items-center gap-3">
+              <span class="flex h-9 w-9 flex-none items-center justify-center rounded-full border border-white/30 bg-white/15 shadow-inner">
+                <svg class="h-5 w-5 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/>
                 </svg>
               </span>
-              <div>
-                <h2 id="antiguo-foro-heading" class="font-display text-xl font-semibold text-[#fff7ec] drop-shadow sm:text-2xl">Antiguo Foro</h2>
-                <p class="text-xs font-medium text-[#fff7ec]/75 drop-shadow">Archivo histórico · solo lectura</p>
-              </div>
+              <h2 id="antiguo-foro-heading" class="font-display text-lg font-bold text-white drop-shadow sm:text-xl">Antiguo Foro</h2>
             </div>
-            <span class="flex-none rounded-full bg-black/20 px-3.5 py-1.5 font-display text-sm font-medium tabular-nums text-white/85 shadow-inner">
-              {{ categorias_historicas|length }} categorías
+            <span class="pill-glossy flex-none rounded-full px-3.5 py-1 font-display text-sm font-semibold tabular-nums">
+              {{ categorias_historicas|length }} foros
             </span>
           </div>
         </div>
 
         {# Filas de archivo #}
-        <ul role="list" class="divide-y divide-[#ddd0b2]">
+        <ul role="list" class="divide-y border-warm-archive">
           {% for cat in categorias_historicas %}
           <li x-data="{ shown: false }"
               x-init="if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) { shown = true; } else { const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting) { setTimeout(() => { shown = true; }, {{ forloop.counter0 }} * 45); io.disconnect(); } }); }, { threshold: 0.08 }); io.observe($el); }"
               :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'"
-              class="group relative transition-all duration-500 ease-out {% if forloop.counter0|divisibleby:2 %}bg-[#efe6d2]{% else %}bg-[#e8dcc2]{% endif %} hover:bg-[#f3e7cd]">
-            <div class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 px-4 py-4 opacity-[0.88] sm:px-5 md:grid-cols-[auto_minmax(0,1fr)_auto_auto] md:gap-x-5">
+              class="group row-hover-archive relative transition-all duration-500 ease-out {% if forloop.counter0|divisibleby:2 %}bg-row-archive-even{% else %}bg-row-archive-odd{% endif %}">
+            <div class="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 px-4 py-3.5 opacity-80 sm:px-5 md:grid-cols-[auto_minmax(0,1fr)_auto_auto] md:gap-x-0">
 
-              {# Zona 1 · Icono (siempre gris, archivo) #}
-              <div class="relative flex h-12 w-12 flex-none items-center justify-center rounded-full bg-[#f3ead6] text-[#b9a483] opacity-70 ring-1 ring-[#e2d5b5]">
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+              {# Col 1 · Icono (gris, archivo) #}
+              <div class="flex w-14 flex-none justify-center md:w-20">
+                <span class="icon-badge-muted icon-archive flex h-12 w-12 items-center justify-center rounded-full ring-1 ring-black/5">
+                  <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                </span>
               </div>
 
-              {# Zona 2 · Título + badge + descripción #}
-              <div class="min-w-0">
+              {# Col 2 · Título + badge + descripción #}
+              <div class="min-w-0 pr-4">
                 <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="font-display text-lg leading-snug">
+                  <h3 class="font-display text-base font-semibold leading-snug sm:text-lg">
                     <a href="{% url 'forum:categoria' cat.slug %}"
-                       class="text-[#5b3a1a] transition-colors duration-200 group-hover:text-[#8a5a2e] after:absolute after:inset-0"
+                       class="text-warm-title link-warm-archive after:absolute after:inset-0"
                        aria-label="Ver categoría archivada {{ cat.nombre }}">
-                      {{ cat.nombre }}
-                      <span class="ml-1 inline-block -translate-x-1 text-[#8a5a2e] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" aria-hidden="true">›</span>
+                      {{ cat.nombre }}<span class="link-arrow ml-1 inline-block text-stat-archive" aria-hidden="true">›</span>
                     </a>
                   </h3>
-                  <span class="inline-flex items-center gap-1 rounded-full border border-[#5e3c1c]/30 bg-[#5e3c1c]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#5e3c1c]">
+                  <span class="badge-archive inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
                     <span aria-hidden="true">🔒</span> Solo Lectura
                   </span>
                 </div>
                 {% if cat.descripcion %}
-                <p class="mt-0.5 truncate text-sm text-[#8a6d4f]">{{ cat.descripcion }}</p>
+                <p class="text-warm-desc mt-0.5 truncate text-sm">{{ cat.descripcion }}</p>
                 {% endif %}
-                {# Resumen compacto (solo móvil) #}
-                <p class="mt-1.5 flex items-center gap-2.5 text-xs font-medium text-[#a98c63] md:hidden">
-                  <span><span class="font-display tabular-nums">{{ cat.num_hilos }}</span> temas</span>
-                  <span aria-hidden="true">·</span>
+                {# Resumen compacto (móvil) #}
+                <p class="text-stat-label mt-1.5 flex items-center gap-2.5 text-xs font-medium md:hidden">
                   <span><span class="font-display tabular-nums">{{ cat.num_posts }}</span> mensajes</span>
+                  <span aria-hidden="true">·</span>
+                  <span><span class="font-display tabular-nums">{{ cat.num_hilos }}</span> temas</span>
                   <span aria-hidden="true">·</span>
                   <span class="italic">archivado</span>
                 </p>
               </div>
 
-              {# Zona 3 · Stats (desktop) #}
+              {# Col 3 · Stats (sepia) #}
               <div class="hidden items-stretch self-stretch md:flex">
-                <div class="flex w-20 flex-col items-center justify-center border-l border-[#ddd0b2] px-2 text-center">
-                  <span class="font-display text-xl font-semibold tabular-nums text-[#a98c63]">{{ cat.num_hilos }}</span>
-                  <span class="text-[10px] font-semibold uppercase tracking-widest text-[#b9a483]">Temas</span>
+                <div class="border-warm-archive flex w-24 flex-col items-center justify-center border-l px-2 text-center">
+                  <span class="text-stat-archive font-display text-lg font-bold tabular-nums leading-none">{{ cat.num_posts }}</span>
+                  <span class="text-stat-label mt-1 text-[10px] font-semibold uppercase tracking-wider">Mensajes</span>
                 </div>
-                <div class="flex w-20 flex-col items-center justify-center border-l border-[#ddd0b2] px-2 text-center">
-                  <span class="font-display text-xl font-semibold tabular-nums text-[#a98c63]">{{ cat.num_posts }}</span>
-                  <span class="text-[10px] font-semibold uppercase tracking-widest text-[#b9a483]">Mensajes</span>
+                <div class="border-warm-archive flex w-20 flex-col items-center justify-center border-l px-2 text-center">
+                  <span class="text-stat-archive font-display text-lg font-bold tabular-nums leading-none">{{ cat.num_hilos }}</span>
+                  <span class="text-stat-label mt-1 text-[10px] font-semibold uppercase tracking-wider">Temas</span>
                 </div>
               </div>
 
-              {# Zona 4 · Estado archivado (desktop) #}
-              <div class="hidden w-56 border-l border-[#ddd0b2] pl-4 md:block">
-                <div class="flex items-center gap-2">
-                  <svg class="h-4 w-4 flex-none text-[#b9a483]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                  <span class="text-xs font-semibold uppercase tracking-wide text-[#a98c63]">Archivado</span>
+              {# Col 4 · Estado archivado #}
+              <div class="border-warm-archive hidden w-60 border-l px-4 py-1 md:block">
+                <div class="text-muted flex items-center gap-2">
+                  <svg class="h-4 w-4 flex-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                  <span class="text-xs font-bold uppercase tracking-wide">Archivado</span>
                 </div>
-                <p class="mt-1 text-xs italic text-[#b9a483]">Contenido histórico de solo lectura</p>
+                <p class="text-muted mt-1 text-xs italic">Contenido histórico de solo lectura</p>
               </div>
             </div>
           </li>
           {% empty %}
-          <li class="border-2 border-dashed border-[#d8b98a]/40 bg-[#efe6d2]/60 px-6 py-12 text-center">
-            <svg class="mx-auto h-10 w-10 text-[#d8b98a]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-            <p class="mt-3 text-sm font-medium text-[#a98c63]">No hay categorías archivadas.</p>
+          <li class="bg-empty border-warm-dashed border-2 border-dashed px-6 py-12 text-center">
+            <svg class="text-muted mx-auto h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <p class="text-stat-label mt-3 text-sm font-medium">No hay categorías archivadas.</p>
           </li>
           {% endfor %}
         </ul>
