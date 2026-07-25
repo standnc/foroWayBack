@@ -22,5 +22,13 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H 172.239.238.6 >> ~/.ssh/known_hosts
           
-          # Ejecutar el script que YA está en el repo (tras git reset --hard)
-          ssh -o StrictHostKeyChecking=no admin@172.239.238.6 "cd /var/www/foroWayBack && ./deploy.sh"
+          # 1. Sincronizar código en VPS (para asegurar que deploy.sh existe)
+          # 2. Ejecutar deploy.sh (pip install, migrate, collectstatic, restart gunicorn)
+          ssh -o StrictHostKeyChecking=no admin@172.239.238.6 "
+            cd /var/www/foroWayBack &&
+            git fetch origin &&
+            git reset --hard origin/master &&
+            git clean -fd -e .env -e .venv/ &&
+            chmod +x deploy.sh &&
+            ./deploy.sh
+          "
