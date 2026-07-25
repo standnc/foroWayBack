@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
-
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Categoria(models.Model):
     """
@@ -12,7 +12,7 @@ class Categoria(models.Model):
     slug = models.SlugField(unique=True, max_length=100)
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True)
-
+    es_clashbang = models.BooleanField(default=False, help_text="True = Foro ClashBang (nuevo), False = Archivo Histórico")
     # Contadores (actualizados por señales o save() de Hilo/Post)
     num_hilos = models.PositiveIntegerField(default=0, editable=False)
     num_posts = models.PositiveIntegerField(default=0, editable=False)
@@ -32,6 +32,31 @@ class Categoria(models.Model):
     def get_absolute_url(self):
         return reverse("forum:categoria", kwargs={"slug": self.slug})
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    rango_titulo = models.CharField(max_length=50, default='Hijo de Fr4n')
+    puntos_barra = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    estado_usuario = models.CharField(
+        max_length=20,
+        default='activo',
+        choices=[('activo','Activo'), ('baneado','Game Over'), ('desaparecido','Desaparecido')]
+    )
+    color_rango = models.CharField(max_length=7, default='#94a3b8')
+
+    @property
+    def mensajes_count(self):
+        return self.user.posts.count()
+
+    @property
+    def is_game_over(self):
+        return self.estado_usuario in ('baneado', 'desaparecido')
+
+    class Meta:
+        verbose_name = 'Perfil de usuario'
+        verbose_name_plural = 'Perfiles de usuario'
+
+    def __str__(self):
+        return f"Perfil de {self.user.email}"
 
 class Hilo(models.Model):
     """
