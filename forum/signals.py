@@ -44,8 +44,8 @@ def actualizar_perfil_al_postear(sender, instance, created, **kwargs):
     """Solo dispara para posts NUEVOS (no históricos)"""
     if not created:
         return
-    if instance.es_historico:  # ← CRÍTICO: Ignorar posts migrados
+    if not instance.autor:  # posts históricos no tienen autor (usan autor_historico)
         return
-    if not instance.autor:
+    if instance.hilo.es_historico:  # el flag es_historico está en Hilo, no en Post
         return
     actualizar_perfil(instance.autor)
