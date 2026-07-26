@@ -1,4 +1,4 @@
-from datetime import datetime
+from django.utils import timezone
 from django.utils.text import slugify
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
@@ -181,6 +181,7 @@ class Command(BaseCommand):
             titulo = data["titulo"]
             hilo_slug = slugify(titulo)[:50]
 
+            ahora = timezone.now()
             hilo = Hilo.objects.create(
                 categoria=cat,
                 titulo=titulo,
@@ -190,14 +191,14 @@ class Command(BaseCommand):
                 cerrado=False,
                 es_historico=False,
                 contenido_apertura=data["contenido"],
-                creado=datetime.now(),
-                ultimo_post=datetime.now(),
+                creado=ahora,
+                ultimo_post=ahora,
             )
             Post.objects.create(
                 hilo=hilo,
                 autor=admin,
                 contenido=data["contenido"],
-                creado=datetime.now(),
+                creado=ahora,
             )
 
             cat.num_hilos = Hilo.objects.filter(categoria=cat).count()
