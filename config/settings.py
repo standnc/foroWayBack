@@ -117,10 +117,10 @@ ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-# AVISO T6.1: cambiar a "mandatory" en prod una vez ejecutado el command:
-#   python manage.py marcar_verificados
-# Con "mandatory", allauth NO loguea tras signup hasta que el email se confirma.
-ACCOUNT_EMAIL_VERIFICATION = "none"  # ← 'none' en local, 'optional' en prod
+# T6.1: env var → "mandatory" en prod (allauth NO loguea hasta confirmar email)
+#   En local sin env: "none" (no verificación)
+#   En .env de prod:  ACCOUNT_EMAIL_VERIFICATION=mandatory
+ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "none")
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 ACCOUNT_EMAIL_CONFIRMATION_HMAC = True
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
