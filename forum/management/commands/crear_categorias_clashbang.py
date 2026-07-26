@@ -3,56 +3,94 @@ from forum.models import Categoria
 
 CATEGORIAS = [
     {
-        "nombre": "🆕 Novedades ClashBang",
-        "slug": "novedades-clashbang",
-        "descripcion": "Actualidad, eventos y anuncios oficiales del foro moderno.",
         "orden": 1,
+        "slug": "noticias",
+        "nombre": "📰 Noticias",
+        "descripcion": (
+            "Anuncios oficiales, actualizaciones del servidor y comunicados "
+            "del staff. Solo el equipo de moderación puede publicar en esta categoría."
+        ),
     },
     {
-        "nombre": "💬 Charla General Nueva",
-        "slug": "charla-general-nueva",
-        "descripcion": "Temas variados, off-topic y comunidad activa 2026+.",
         "orden": 2,
+        "slug": "general",
+        "nombre": "💬 General",
+        "descripcion": (
+            "Conversación diaria, presentaciones de nuevos usuarios y vida en "
+            "la comunidad. Respeta a los demás usuarios y evita el spam."
+        ),
     },
     {
-        "nombre": "🌱 Cultivo Moderno",
-        "slug": "cultivo-moderno",
-        "descripcion": "Técnicas actuales, genética y fertilizantes modernos.",
         "orden": 3,
+        "slug": "bleuga-beach",
+        "nombre": "🏖️ Bleuga Beach",
+        "descripcion": (
+            "Zona relajada, humor, memes y off-topic ligero dentro del rol del "
+            "servidor. Contenido apto para todos los públicos."
+        ),
     },
     {
-        "nombre": "⚔️ Arena y Combate",
-        "slug": "arena-combate",
-        "descripcion": "PvP, builds competitivos y estrategias actualizadas.",
         "orden": 4,
+        "slug": "soporte",
+        "nombre": "🛠️ Soporte Técnico",
+        "descripcion": (
+            "Dudas sobre instalación, clientes, errores de conexión y "
+            "configuración. Incluye logs y capturas cuando reportes un problema."
+        ),
     },
     {
-        "nombre": "🎨 Creatividad y Media",
-        "slug": "creatividad-media",
-        "descripcion": "Fanart, memes, música y contenido multimedia nuevo.",
         "orden": 5,
+        "slug": "minijuegos",
+        "nombre": "🎮 Minijuegos",
+        "descripcion": (
+            "Concursos in-game, eventos de pesca, trivia y rankings de la "
+            "comunidad. Publica aquí tus récords y participa en los retos semanales."
+        ),
     },
     {
-        "nombre": "❓ Soporte y Ayuda",
-        "slug": "soporte-ayuda",
-        "descripcion": "Dudas técnicas, bugs actuales y asistencia a usuarios nuevos.",
         "orden": 6,
+        "slug": "off-topic",
+        "nombre": "🌍 Off Topic",
+        "descripcion": (
+            "Temas completamente ajenos al servidor: otros juegos, tecnología, "
+            "vida real. Mantén el respeto y evita temas polémicos."
+        ),
+    },
+    {
+        "orden": 7,
+        "slug": "apelaciones",
+        "nombre": "🛡️ Apelaciones y Moderación",
+        "descripcion": (
+            "Apelaciones de baneos, reportes de usuarios, bugs críticos y "
+            "contacto directo con el equipo de staff. Usa el formato oficial "
+            "para apelaciones."
+        ),
+    },
+    {
+        "orden": 8,
+        "slug": "eventos",
+        "nombre": "🎉 Eventos",
+        "descripcion": (
+            "Calendario de eventos especiales, torneos PvP y fiestas virtuales. "
+            "Consulta las normas de participación antes de inscribirte."
+        ),
     },
 ]
 
 
 class Command(BaseCommand):
-    help = "Crear las 6 categorías del Foro ClashBang (es_clashbang=True)"
+    help = "Crear/actualizar las 8 categorías del Foro ClashBang (es_clashbang=True)"
 
     def handle(self, *args, **options):
         creadas = 0
-        existentes = 0
+        actualizadas = 0
         errores = 0
 
         for cat_data in CATEGORIAS:
+            slug = cat_data["slug"]
             try:
-                obj, created = Categoria.objects.get_or_create(
-                    slug=cat_data["slug"],
+                obj, created = Categoria.objects.update_or_create(
+                    slug=slug,
                     defaults={
                         "nombre": cat_data["nombre"],
                         "descripcion": cat_data["descripcion"],
@@ -64,12 +102,13 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS(f"✅ Creada: {obj.nombre}"))
                     creadas += 1
                 else:
-                    self.stdout.write(self.style.WARNING(f"⚠️  Ya existe: {obj.nombre}"))
-                    existentes += 1
+                    self.stdout.write(self.style.WARNING(f"🔄 Actualizada: {obj.nombre}"))
+                    actualizadas += 1
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f"❌ Error con {cat_data['slug']}: {e}"))
+                self.stdout.write(self.style.ERROR(f"❌ Error con '{slug}': {e}"))
                 errores += 1
 
+        self.stdout.write("")
         self.stdout.write(self.style.SUCCESS(
-            f"\n📊 Resumen: {creadas} creadas, {existentes} existentes, {errores} errores"
+            f"📊 Resumen: {creadas} creadas, {actualizadas} actualizadas, {errores} errores"
         ))

@@ -31,6 +31,7 @@ class ForumSocialAccountAdapter(DefaultSocialAccountAdapter):
     Evita colisiones de email entre OAuth y registro tradicional.
     Si el email del proveedor OAuth ya existe en BD, vincula la cuenta social
     al usuario existente en lugar de crear un duplicado.
+    También marca User.is_verified=True para cuentas OAuth con email verificado (D5).
     """
     def pre_social_login(self, request, sociallogin):
         email = sociallogin.account.extra_data.get("email", "").lower().strip()
@@ -56,3 +57,19 @@ class ForumSocialAccountAdapter(DefaultSocialAccountAdapter):
             sociallogin.account.provider,
         )
         sociallogin.connect(request, existing_user)
+
+    def save_user(self, request, sociallogin, form=None):
+        """Marca is_verified=True si el provider entrega el email verificado (D5)."""
+        user = super().save_user(request, sociallogin, form)
+        try:
+            verified = sociallogin.email_addresses[0].verified if sociallogin.email_addresses else False
+        except (IndexError, AttributeError):
+            verified = False
+
+        if verified and not user.is_verified:
+            user.is_verified = True
+            user.save(update_fields=["is_verified"])
+            logger.info("OAuth (provider=%s) → User.is_verified=True para %s",
+                        sociallogin.account.provider, user.email)
+
+        return user

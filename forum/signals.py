@@ -1,7 +1,13 @@
 import math
+import logging
+
+from allauth.account.signals import email_confirmed
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
 from .models import Post, UserProfile
+
+logger = logging.getLogger(__name__)
 
 def calcular_puntos(count):
     """Fórmula logarítmica: log2(1)=0pts, log2(100)≈60pts, log2(5000)=100pts"""
@@ -49,3 +55,13 @@ def actualizar_perfil_al_postear(sender, instance, created, **kwargs):
     if instance.hilo.es_historico:  # el flag es_historico está en Hilo, no en Post
         return
     actualizar_perfil(instance.autor)
+
+
+@receiver(email_confirmed)
+def marcar_verificado_tras_confirmar(sender, request, email_address, **kwargs):
+    """Cuando allauth confirma un email, sincroniza User.is_verified."""
+    user = email_address.user
+    if not user.is_verified:
+        user.is_verified = True
+        user.save(update_fields=["is_verified"])
+        logger.info("Email confirmado → User.is_verified=True para %s", user.email)

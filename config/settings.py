@@ -1,5 +1,7 @@
+# config/settings.py
 """
 Django settings for bbforo — Foro Retro BoomBang.
+Entorno: LOCAL DEVELOPMENT (con compatibilidad VPS)
 """
 import os
 from pathlib import Path
@@ -10,13 +12,13 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ============ CORE ============
-SECRET_KEY = os.getenv("SECRET_KEY")
-DEBUG = False
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost").split(",")]
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-local-dev-key-change-me")
+# ✅ DESPUÉS
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")]
 
 # ============ APPS ============
 INSTALLED_APPS = [
-    # Django
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -24,6 +26,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+
     # Third-party
     "allauth",
     "allauth.account",
@@ -34,6 +37,7 @@ INSTALLED_APPS = [
     "axes",
     "csp",
     "storages",
+
     # Local
     "accounts",
     "forum",
@@ -78,7 +82,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.sqlite3"),
-        "NAME": os.getenv("DB_NAME", "foro.db"),
+        "NAME": BASE_DIR / os.getenv("DB_NAME", "db.sqlite3"),
         "USER": os.getenv("DB_USER", ""),
         "PASSWORD": os.getenv("DB_PASSWORD", ""),
         "HOST": os.getenv("DB_HOST", "localhost"),
@@ -97,7 +101,7 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 10}},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
@@ -112,12 +116,16 @@ ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_VERIFICATION = "optional"
+# AVISO T6.1: cambiar a "mandatory" en prod una vez ejecutado el command:
+#   python manage.py marcar_verificados
+# Con "mandatory", allauth NO loguea tras signup hasta que el email se confirma.
+ACCOUNT_EMAIL_VERIFICATION = "none"  # ← 'none' en local, 'optional' en prod
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 ACCOUNT_EMAIL_CONFIRMATION_HMAC = True
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_PREVENT_ENUMERATION = True
 ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_ADAPTER = "forum.adapter.ForumAccountAdapter"
 
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
@@ -136,14 +144,16 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_ADAPTER = "forum.adapter.ForumSocialAccountAdapter"
 
-# ============ EMAIL (SMTP con Resend) ============
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+# ============ EMAIL (SMTP Resend) ============
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")  # ← Console en local
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.resend.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "resend")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "onboarding@resend.dev")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@clashbang.forum")
+
+# ============ AXES (Rate Limiting) ============
 AXES_ENABLED = True
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
@@ -171,16 +181,18 @@ if USE_R2:
     AWS_QUERYSTRING_AUTH = False
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 else:
-    STATIC_URL = "static/"
+    STATIC_URL = "/static/"
     STATIC_ROOT = BASE_DIR / "staticfiles"
-    MEDIA_URL = "media/"
+    MEDIA_URL = "/media/"
     MEDIA_ROOT = BASE_DIR / "media"
 
-# ============ CSP ============
+# ============ CSP (django-csp 4.x - Comillas explícitas Error #1) ============
 CONTENT_SECURITY_POLICY = {
     "DIRECTIVES": {
         "default-src": ["'self'"],
-        "script-src": ["'unsafe-inline'", 
+        "script-src": [
+            "'unsafe-inline'",
+            "'unsafe-eval'",
             "'self'",
             "https://unpkg.com",
             "https://cdn.jsdelivr.net",
@@ -227,15 +239,14 @@ CONTENT_SECURITY_POLICY = {
 }
 
 # ============ I18N ============
-LANGUAGE_CODE = "es"
+LANGUAGE_CODE = "es-es"
 TIME_ZONE = "Europe/Madrid"
 USE_I18N = True
 USE_TZ = True
 
-# ============ DEFAULT ============
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ============ SECURITY (prod hardening) ============
+# ============ SECURITY (Prod hardening - solo activo si DEBUG=False) ============
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -246,14 +257,19 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
     X_FRAME_OPTIONS = "DENY"
-    CSRF_TRUSTED_ORIGINS = ["https://clashbang.forum", "https://www.clashbang.forum", "https://foro.clashbang.forum"]
+    CSRF_TRUSTED_ORIGINS = [
+        "https://clashbang.forum",
+        "https://www.clashbang.forum",
+        "https://foro.clashbang.forum"
+    ]
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     ALLAUTH_TRUSTED_PROXY_COUNT = 2
     CSRF_COOKIE_DOMAIN = ".clashbang.forum"
-ACCOUNT_ADAPTER = "forum.adapter.ForumAccountAdapter"
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@clashbang.forum")
 
-# ============ LOGGING ============
+# ============ LOGGING (Condicional LOCAL/VPS - Evita FileNotFoundError) ============
+LOG_DIR = BASE_DIR / "logs" if DEBUG else Path("/var/log/django")
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 _LOG_LEVEL = "DEBUG" if DEBUG else "WARNING"
 
 LOGGING = {
@@ -270,12 +286,8 @@ LOGGING = {
         },
     },
     "filters": {
-        "require_debug_false": {
-            "()": "django.utils.log.RequireDebugFalse",
-        },
-        "require_debug_true": {
-            "()": "django.utils.log.RequireDebugTrue",
-        },
+        "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
+        "require_debug_true": {"()": "django.utils.log.RequireDebugTrue"},
     },
     "handlers": {
         "console": {
@@ -284,11 +296,10 @@ LOGGING = {
         },
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "/var/log/django/foro.log",
-            "maxBytes": 5 * 1024 * 1024,  # 5 MB
+            "filename": LOG_DIR / "foro.log",  # ← Ruta dinámica
+            "maxBytes": 5 * 1024 * 1024,
             "backupCount": 5,
             "formatter": "verbose",
-            "filters": [],
         },
         "mail_admins": {
             "class": "django.utils.log.AdminEmailHandler",
@@ -321,6 +332,11 @@ LOGGING = {
         "accounts": {
             "handlers": ["file", "console"],
             "level": _LOG_LEVEL,
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "WARNING",
             "propagate": False,
         },
     },

@@ -12,6 +12,8 @@ urlpatterns = [
     path("hilo/<int:pk>/", views.HiloDetailView.as_view(), name="hilo"),
     path("buscar/", views.BuscarView.as_view(), name="buscar"),
     path("perfil/<str:username>/", views.PerfilView.as_view(), name="perfil"),
+    # Verificación (T6.3)
+    path("cuenta/verificar/", views.VerifyWaitingView.as_view(), name="verify_waiting"),
     # Moderación
     path("moderacion/", views.ModerationPanelView.as_view(), name="moderation_panel"),
     path("moderacion/report/<int:pk>/resolver/", views.ResolverReportView.as_view(), name="resolver_report"),

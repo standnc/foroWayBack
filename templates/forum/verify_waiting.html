@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Verifica tu email — ClashBang Forum{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto mt-12 px-4">
+  <div class="card-sunset p-8 md:p-10 text-center">
+    <svg class="mx-auto h-16 w-16 text-gold drop-shadow mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+    </svg>
+
+    <h1 class="font-display text-2xl font-bold text-warm-title mb-3">Confirma tu email</h1>
+
+    <p class="text-warm-desc text-sm leading-relaxed mb-4">
+      Revisa la bandeja de entrada de <strong class="text-stat-active">{{ user.email }}</strong>.
+      Te hemos enviado un enlace de verificación.
+    </p>
+    <p class="text-warm-desc text-xs mb-6">
+      Hasta que confirmes tu email no podrás ver el contenido de los hilos ni escribir en el foro.
+      Las categorías y los títulos sí están disponibles mientras tanto.
+    </p>
+
+    <div class="space-y-3">
+      <a href="{% url 'account_email' %}"
+         class="form-btn-primary inline-flex items-center gap-2 px-6 py-2.5 text-sm w-full justify-center">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Reenviar email
+      </a>
+      <a href="{% url 'forum:index' %}"
+         class="form-btn-secondary inline-flex items-center gap-2 px-6 py-2.5 text-sm w-full justify-center">
+        Volver al inicio
+      </a>
+    </div>
+
+    <p class="text-muted text-xs mt-5">
+      ¿No encuentras el email? Revisa la carpeta de spam o añade <span class="text-stat-active">noreply@clashbang.forum</span> a tus contactos.
+    </p>
+  </div>
+</div>
+{% endblock %}

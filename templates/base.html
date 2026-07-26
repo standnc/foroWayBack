@@ -221,6 +221,14 @@
           {# === AUTH === #}
           {% if user.is_authenticated %}
           <div class="hidden sm:flex items-center gap-1">
+            {% if not user.is_verified %}
+            <a href="{% url 'forum:verify_waiting' %}"
+               class="inline-flex items-center gap-1.5 rounded-full bg-[#fff3d6] px-3 py-1 text-xs font-bold text-[#c2410c] border border-[#f0c070] shadow-sm hover:bg-[#ffe9c4] transition-colors"
+               title="Confirma tu email para ver el contenido">
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Verifica tu email
+            </a>
+            {% endif %}
             <a href="{% url 'forum:perfil' user.username %}"
                class="profile-chip-sunset inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
               <span class="avatar-sunset w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">

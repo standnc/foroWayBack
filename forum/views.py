@@ -5,6 +5,7 @@ from django.urls import reverse, reverse_lazy
 from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta
+from .mixins import VerifiedRequiredMixin
 from .models import Categoria, Hilo, Post, Report, Warning, Ban, ModerationLog
 from .forms import HiloForm, PostForm, ResolverReportForm, WarningForm, BanForm
 from accounts.models import User
@@ -41,11 +42,15 @@ class CategoriaListView(ListView):
     template_name = "forum/categoria_list.html"
     context_object_name = "categorias"
 
-    def get_queryset(self):
-        return Categoria.objects.annotate(
-            total_hilos=Count("hilos", distinct=True),
-            total_posts=Count("hilos__posts", distinct=True),
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["categorias_clashbang"] = Categoria.objects.filter(
+            es_clashbang=True
+        ).order_by("orden")
+        context["categorias_historicas"] = Categoria.objects.filter(
+            es_clashbang=False
         ).order_by("nombre")
+        return context
 
 
 class CategoriaDetailView(DetailView):
@@ -67,7 +72,7 @@ class CategoriaDetailView(DetailView):
         return ctx
 
 
-class HiloDetailView(DetailView):
+class HiloDetailView(VerifiedRequiredMixin, DetailView):
     model = Hilo
     template_name = "forum/hilo_detail.html"
     context_object_name = "hilo"
@@ -81,8 +86,6 @@ class HiloDetailView(DetailView):
         return ctx
 
     def post(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect(f"{reverse('account_login')}?next={request.path}")
         hilo = self.get_object()
         form = PostForm(request.POST)
         if form.is_valid():
@@ -102,7 +105,7 @@ class HiloDetailView(DetailView):
         return self.render_to_response(ctx)
 
 
-class CrearHiloView(LoginRequiredMixin, CreateView):
+class CrearHiloView(VerifiedRequiredMixin, LoginRequiredMixin, CreateView):
     model = Hilo
     form_class = HiloForm
     template_name = "forum/crear_hilo.html"
@@ -144,6 +147,16 @@ class BuscarView(TemplateView):
         else:
             ctx["resultados"] = None
         return ctx
+
+
+class VerifyWaitingView(LoginRequiredMixin, TemplateView):
+    """Pantalla de espera para usuarios logueados no verificados (T6.3)."""
+    template_name = "forum/verify_waiting.html"
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_verified:
+            return redirect("forum:index")
+        return super().get(request, *args, **kwargs)
 
 
 class PerfilView(DetailView):
