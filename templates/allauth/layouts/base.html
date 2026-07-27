@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 
-{# Layout de allauth: sustituye al suyo por defecto para que password reset,
-   confirmación de email, reautenticación, etc. hereden el diseño del foro.
-   allauth rellena {% block content %}, que ya viene de base.html. #}
+{% comment %}
+Layout de allauth: sustituye al suyo por defecto para que password reset,
+confirmación de email, reautenticación, etc. hereden el diseño del foro.
+allauth rellena el bloque "content", que ya viene de base.html.
+
+Ojo: aquí hace falta {% comment %} y no {# ... #}, que en Django solo vale
+para una línea; en varias, los tags del texto se parsean de verdad.
+{% endcomment %}
 
 {% block title %}{% block head_title %}{% endblock %} — ClashBangForum{% endblock %}

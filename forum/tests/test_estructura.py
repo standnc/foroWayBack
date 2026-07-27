@@ -195,3 +195,32 @@ class TestPausaDeContadores:
         HiloFactory(categoria=categoria)
         categoria.refresh_from_db()
         assert categoria.num_hilos == 1
+
+
+class TestPlantillasSocialaccount:
+    """Overrides de allauth que vivían solo en el VPS, fuera de git.
+
+    authentication_error.html usaba {% url account_login %} sin comillas:
+    Django lo trataba como variable de contexto y la página reventaba con
+    NoReverseMatch justo cuando había que mostrar un error de login.
+    """
+
+    @pytest.mark.parametrize(
+        "nombre", ["socialaccount/login.html", "socialaccount/authentication_error.html"]
+    )
+    def test_la_plantilla_renderiza(self, nombre, db, rf):
+        from django.template.loader import render_to_string
+
+        peticion = rf.get("/")
+        html = render_to_string(nombre, {"provider": None, "process": "login"}, request=peticion)
+        assert html.strip()
+
+    def test_la_pagina_de_error_enlaza_al_login(self, db, rf):
+        from django.template.loader import render_to_string
+        from django.urls import reverse
+
+        html = render_to_string(
+            "socialaccount/authentication_error.html", {}, request=rf.get("/")
+        )
+        assert reverse("account_login") in html
+        assert reverse("account_signup") in html

@@ -1,0 +1,41 @@
+{% extends "socialaccount/base_entrance.html" %}
+{% load i18n %}
+{% load allauth %}
+
+{% block head_title %}
+    Error de autenticación — ClashBangForum
+{% endblock head_title %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-8">
+  <div class="card-sunset rounded-xl p-6 sm:p-8 shadow-2xl text-center">
+    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+      <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+
+    <h2 class="text-xl font-display font-bold text-[#5b3a1a] dark:text-[#f3e6c8] mb-2">
+      Algo salió mal
+    </h2>
+
+    <p class="text-sm text-[#8a6d4f] dark:text-[#c4a882] mb-6">
+      Hubo un error al intentar iniciar sesión con tu cuenta externa.
+      Por favor, inténtalo de nuevo o usa otro método.
+    </p>
+
+    <div class="space-y-3">
+      <a href="{% url 'account_login' %}" class="btn-sunset inline-block w-full py-3 px-4 text-center text-base">
+        Volver a iniciar sesión
+      </a>
+      <a href="{% url 'account_signup' %}" class="block w-full py-2.5 px-4 text-center text-sm text-[#8a6d4f] dark:text-[#c4a882] hover:text-[#e8590c] transition-colors underline">
+        Crear una cuenta nueva
+      </a>
+    </div>
+
+    <p class="mt-6 text-xs text-[#8a6d4f]/60 dark:text-[#a0886a]/60">
+      Si el error persiste, contacta con el administrador del foro.
+    </p>
+  </div>
+</div>
+{% endblock content %}
