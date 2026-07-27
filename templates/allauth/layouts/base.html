@@ -1,10 +1,7 @@
 {% extends "base.html" %}
-{% load i18n %}
+
+{# Layout de allauth: sustituye al suyo por defecto para que password reset,
+   confirmación de email, reautenticación, etc. hereden el diseño del foro.
+   allauth rellena {% block content %}, que ya viene de base.html. #}
 
 {% block title %}{% block head_title %}{% endblock %} — ClashBangForum{% endblock %}
-
-{# All allauth pages render their content through {% block content %} #}
-{# which fills our base.html's {% block content %} #}
-
-{% block extra_head %}{% endblock %}
-{% block extra_body %}{% endblock %}

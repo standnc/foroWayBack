@@ -1,11 +1,12 @@
 import logging
 import math
+from contextlib import contextmanager
 
 from allauth.account.signals import email_confirmed
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from .models import Post, UserProfile
+from .models import Categoria, Hilo, Post, UserProfile
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,58 @@ def actualizar_perfil_al_postear(sender, instance, created, **kwargs):
     if instance.hilo.es_historico:  # el flag es_historico está en Hilo, no en Post
         return
     actualizar_perfil(instance.autor)
+
+
+# ─── Contadores denormalizados ──────────────────────────────
+#
+# Categoria.num_hilos/num_posts e Hilo.num_posts se muestran al usuario en
+# categoria_list.html. El comentario del modelo decía "actualizados por
+# señales" y no existía ninguna: solo el comando one-shot, así que derivaban
+# en cuanto alguien publicaba.
+
+@contextmanager
+def contadores_en_pausa():
+    """Desconecta las señales de contadores durante una importación masiva.
+
+    migrar_sqlite crea miles de filas: mantener los contadores fila a fila son
+    dos queries extra por post. El comando recalcula todo al terminar.
+    """
+    receptores = [
+        (post_save, refrescar_contadores_por_post, Post),
+        (post_delete, refrescar_contadores_por_post, Post),
+        (post_save, refrescar_contadores_por_hilo, Hilo),
+        (post_delete, refrescar_contadores_por_hilo, Hilo),
+    ]
+    for senal, receptor, modelo in receptores:
+        senal.disconnect(receptor, sender=modelo)
+    try:
+        yield
+    finally:
+        for senal, receptor, modelo in receptores:
+            senal.connect(receptor, sender=modelo)
+
+
+def _refrescar_contadores_de_hilo(hilo):
+    Hilo.objects.filter(pk=hilo.pk).update(num_posts=hilo.posts.count())
+
+
+def _refrescar_contadores_de_categoria(categoria):
+    Categoria.objects.filter(pk=categoria.pk).update(
+        num_hilos=categoria.hilos.count(),
+        num_posts=Post.objects.filter(hilo__categoria=categoria).count(),
+    )
+
+
+@receiver([post_save, post_delete], sender=Post)
+def refrescar_contadores_por_post(sender, instance, **kwargs):
+    hilo = instance.hilo
+    _refrescar_contadores_de_hilo(hilo)
+    _refrescar_contadores_de_categoria(hilo.categoria)
+
+
+@receiver([post_save, post_delete], sender=Hilo)
+def refrescar_contadores_por_hilo(sender, instance, **kwargs):
+    _refrescar_contadores_de_categoria(instance.categoria)
 
 
 @receiver(email_confirmed)

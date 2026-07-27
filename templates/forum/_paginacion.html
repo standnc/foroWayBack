@@ -1,0 +1,27 @@
+{# Controles de paginación reutilizables.
+   Conserva el resto de parámetros de la query (?q=..., filtros) al cambiar de página. #}
+{% if is_paginated %}
+<nav class="flex items-center justify-center gap-2 mt-8" aria-label="Paginación">
+  {% if page_obj.has_previous %}
+  <a href="?{% if request.GET.q %}q={{ request.GET.q|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}"
+     class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-boom/40 hover:text-boom transition-colors text-sm">
+    ‹ Anterior
+  </a>
+  {% else %}
+  <span class="px-3 py-2 rounded-lg bg-slate-800/40 border border-slate-800 text-slate-600 text-sm">‹ Anterior</span>
+  {% endif %}
+
+  <span class="px-4 py-2 text-sm text-slate-400">
+    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+  </span>
+
+  {% if page_obj.has_next %}
+  <a href="?{% if request.GET.q %}q={{ request.GET.q|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}"
+     class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:border-boom/40 hover:text-boom transition-colors text-sm">
+    Siguiente ›
+  </a>
+  {% else %}
+  <span class="px-3 py-2 rounded-lg bg-slate-800/40 border border-slate-800 text-slate-600 text-sm">Siguiente ›</span>
+  {% endif %}
+</nav>
+{% endif %}

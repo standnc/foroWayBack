@@ -58,22 +58,28 @@ class CategoriaListView(ListView):
         return context
 
 
-class CategoriaDetailView(DetailView):
-    model = Categoria
-    template_name = "forum/categoria_detail.html"
-    context_object_name = "categoria"
-    slug_field = "slug"
-    slug_url_kwarg = "slug"
+class CategoriaDetailView(ListView):
+    """Hilos de una categoría, paginados.
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["hilos"] = (
-            self.object.hilos.annotate(
-                num_respuestas=Count("posts") - 1,
-            )
+    Era un DetailView que volcaba todos los hilos de golpe: una categoría del
+    scrape con cientos de temas se renderizaba entera en cada visita.
+    """
+
+    template_name = "forum/categoria_detail.html"
+    context_object_name = "hilos"
+    paginate_by = 30
+
+    def get_queryset(self):
+        self.categoria = get_object_or_404(Categoria, slug=self.kwargs["slug"])
+        return (
+            self.categoria.hilos.annotate(num_respuestas=Count("posts") - 1)
             .select_related("autor")
             .order_by("-sticky", "-ultimo_post")
         )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["categoria"] = self.categoria
         return ctx
 
 
@@ -155,19 +161,31 @@ class CrearHiloView(VerifiedRequiredMixin, LoginRequiredMixin, CreateView):
         return reverse("forum:hilo", kwargs={"pk": self.object.pk})
 
 
-class BuscarView(TemplateView):
+class BuscarView(ListView):
+    """Búsqueda paginada, en vez del corte fijo a 30 resultados."""
+
     template_name = "forum/buscar.html"
+    context_object_name = "resultados"
+    paginate_by = 30
+
+    def get_queryset(self):
+        query = self.request.GET.get("q", "").strip()
+        if not query:
+            return Hilo.objects.none()
+        return (
+            Hilo.objects.filter(
+                Q(titulo__icontains=query) | Q(autor_historico__icontains=query)
+            )
+            .select_related("categoria", "autor")
+            .order_by("-creado")
+        )
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         query = self.request.GET.get("q", "").strip()
-        if query:
-            results = Hilo.objects.filter(
-                Q(titulo__icontains=query) |
-                Q(autor_historico__icontains=query)
-            ).select_related("categoria", "autor").order_by("-creado")[:30]
-            ctx["resultados"] = results
-        else:
+        ctx["query"] = query
+        # La plantilla distingue "sin buscar" de "sin resultados".
+        if not query:
             ctx["resultados"] = None
         return ctx
 
@@ -208,7 +226,7 @@ class ModerationPanelView(StaffRequiredMixin, TemplateView):
 
         ctx["reportes_pendientes"] = Report.objects.filter(
             estado__in=["pendiente", "revisando"]
-        ).select_related("post", "hilo", "reportado_por").order_by("-creado")
+        ).select_related("post", "hilo", "reportado_por").order_by("-creado")[:50]
 
         ctx["total_warnings"] = Warning.objects.count()
         ctx["total_bans_activos"] = Ban.objects.filter(activo=True).count()

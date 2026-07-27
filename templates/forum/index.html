@@ -62,28 +62,11 @@
 
           {# Login form #}
           <div x-show="tab === 'login'">
-            <form method="post" action="{% url 'account_login' %}" class="space-y-4">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{{ request.path }}">
-              <div>
-                <label for="id_login" class="form-label-sunset block text-sm mb-1.5">Correo electrónico</label>
-                <input type="email" name="login" id="id_login" placeholder="tu@email.com" required
-                       class="form-input-sunset w-full px-4 py-2.5 text-sm transition-all">
-              </div>
-              <div>
-                <label for="id_password" class="form-label-sunset block text-sm mb-1.5">Contraseña</label>
-                <input type="password" name="password" id="id_password" placeholder="••••••••" required
-                       class="form-input-sunset w-full px-4 py-2.5 text-sm transition-all">
-              </div>
-              <div class="flex items-center justify-between text-sm">
-                <label class="form-label-sunset flex items-center gap-2 font-medium">
-                  <input type="checkbox" name="remember" id="id_remember" class="form-check-sunset rounded">
-                  Recordarme
-                </label>
-                <a href="{% url 'account_reset_password' %}" class="form-link transition-colors">¿Olvidaste tu contraseña?</a>
-              </div>
-              <button type="submit" class="form-btn-primary w-full py-2.5 text-sm transition-all">Entrar</button>
-            </form>
+            {# El formulario vive en el parcial: HTMX lo devuelve tal cual al
+               reemplazar el contenedor con los errores de validación. #}
+            <div id="login-form-container">
+              {% include "forum/_login_form.html" %}
+            </div>
 
             {# Social login #}
             {% get_providers as socialaccount_providers %}
@@ -112,27 +95,9 @@
 
           {# Register panel #}
           <div x-show="tab === 'register'" x-cloak>
-            <form method="post" action="{% url 'account_signup' %}" class="space-y-4">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{{ request.path }}">
-              <div>
-                <label for="id_signup_email" class="form-label-sunset block text-sm mb-1.5">Correo electrónico</label>
-                <input type="email" name="email" id="id_signup_email" placeholder="tu@email.com" required
-                       class="form-input-sunset w-full px-4 py-2.5 text-sm transition-all">
-              </div>
-              <div>
-                <label for="id_signup_password1" class="form-label-sunset block text-sm mb-1.5">Contraseña</label>
-                <input type="password" name="password1" id="id_signup_password1" placeholder="Mín. 8 caracteres" required
-                       class="form-input-sunset w-full px-4 py-2.5 text-sm transition-all">
-              </div>
-              <div>
-                <label for="id_signup_password2" class="form-label-sunset block text-sm mb-1.5">Confirmar contraseña</label>
-                <input type="password" name="password2" id="id_signup_password2" placeholder="Repite la contraseña" required
-                       class="form-input-sunset w-full px-4 py-2.5 text-sm transition-all">
-              </div>
-              <p class="form-fineprint text-xs">Al registrarte aceptas nuestras condiciones de uso.</p>
-              <button type="submit" class="form-btn-primary w-full py-2.5 text-sm transition-all">Crear cuenta</button>
-            </form>
+            <div id="signup-form-container">
+              {% include "forum/_signup_form.html" %}
+            </div>
 
             {# Social register #}
             {% get_providers as socialaccount_providers %}
