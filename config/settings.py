@@ -6,6 +6,7 @@ Entorno: LOCAL DEVELOPMENT (con compatibilidad VPS)
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,9 +14,18 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ============ CORE ============
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-local-dev-key-change-me")
-# ✅ DESPUÉS
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+if not SECRET_KEY:
+    if not DEBUG:
+        # Sin esto, un .env que no carga en el VPS arrancaba en silencio con una
+        # clave conocida y firmaba sesiones y tokens de reset con ella.
+        raise ImproperlyConfigured(
+            "SECRET_KEY no está definida y DEBUG=False. Revisa el .env del servidor."
+        )
+    SECRET_KEY = "django-insecure-local-dev-key-change-me"
+
 ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")]
 
 # ============ APPS ============
@@ -53,6 +63,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Tras AuthenticationMiddleware: necesita request.user resuelto.
+    "forum.middleware.BanEnforcementMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -268,7 +280,9 @@ if not DEBUG:
     ]
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     ALLAUTH_TRUSTED_PROXY_COUNT = 2
-    CSRF_COOKIE_DOMAIN = ".clashbang.forum"
+    # Sin CSRF_COOKIE_DOMAIN: compartir la cookie con todo *.clashbang.forum
+    # la exponía a static.clashbang.forum, que sirve contenido subido desde R2.
+    # No hay ningún POST entre subdominios que lo necesite.
 
 # ============ LOGGING (Condicional LOCAL/VPS - Evita FileNotFoundError) ============
 # Se puede forzar con LOG_DIR en .env. Sin él: logs/ en local, /var/log/django en el VPS.

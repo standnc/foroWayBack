@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count, Max, Q
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -94,6 +95,14 @@ class HiloDetailView(VerifiedRequiredMixin, DetailView):
         # DetailView.get_context_data lee self.object; sin esto, una respuesta
         # inválida se iba en AttributeError (500) al re-renderizar el formulario.
         self.object = hilo
+
+        # Los campos existían y nadie los consultaba: se podía responder tanto
+        # a un hilo cerrado como a uno del archivo histórico (solo lectura).
+        if hilo.cerrado:
+            return HttpResponseForbidden("Este hilo está cerrado.")
+        if hilo.es_historico:
+            return HttpResponseForbidden("El archivo histórico es de solo lectura.")
+
         form = PostForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)

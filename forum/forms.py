@@ -3,7 +3,7 @@ from django.utils.html import strip_tags
 
 from accounts.models import User
 
-from .models import Ban, Hilo, Post, Warning
+from .models import Ban, Categoria, Hilo, Post, Warning
 
 
 class HiloForm(forms.ModelForm):
@@ -47,6 +47,14 @@ class HiloForm(forms.ModelForm):
         if len(strip_tags(valor).strip()) < 1:
             raise forms.ValidationError("El mensaje no puede estar vacío.")
         return valor
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Solo el foro activo: las categorías del scrape son "🔒 Solo Lectura"
+        # y sin este filtro se podía abrir un hilo dentro del archivo histórico.
+        self.fields["categoria"].queryset = Categoria.objects.filter(
+            es_clashbang=True
+        ).order_by("orden", "nombre")
 
 
 class PostForm(forms.ModelForm):

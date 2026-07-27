@@ -36,7 +36,7 @@
           </a>
         </div>
         <div class="flex items-center gap-3 mt-1 text-xs text-slate-500">
-          <span>{% if hilo.autor_historico %}{{ hilo.autor_historico }}{% else %}{{ hilo.autor|default:"Anónimo" }}{% endif %}</span>
+          <span>{% if hilo.autor_historico %}{{ hilo.autor_historico }}{% else %}{{ hilo.autor.public_name|default:"Anónimo" }}{% endif %}</span>
           <span>·</span>
           <span>{{ hilo.creado|date:"d/m/Y H:i" }}</span>
           <span>·</span>
