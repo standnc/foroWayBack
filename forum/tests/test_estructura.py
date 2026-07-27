@@ -224,3 +224,49 @@ class TestPlantillasSocialaccount:
         )
         assert reverse("account_login") in html
         assert reverse("account_signup") in html
+
+
+class TestArgumentosDeTagEntrecomillados:
+    """Ningún tag de plantilla debe pasar literales sin comillas.
+
+    Dos bugs del mismo tipo llegaron a producción: {% url account_login %} en
+    authentication_error.html (NoReverseMatch, la página moría) y
+    process=login en login/signup.html (traceback en el log en cada visita).
+    Django los interpreta como variables de contexto, que no existen.
+
+    Se comprueba de forma estática porque el fallo no siempre cambia el código
+    de respuesta: un smoke test lo deja pasar.
+    """
+
+    RAICES = ["templates", "forum/templates"]
+
+    def _plantillas(self):
+        from pathlib import Path
+
+        for raiz in self.RAICES:
+            yield from Path(raiz).rglob("*.html")
+
+    def test_url_siempre_lleva_el_nombre_entrecomillado(self):
+        import re
+
+        # {% url algo %} donde `algo` no empieza por comilla ni es una variable
+        # con punto (p.ej. {% url hilo.get_absolute_url %} no aplica aquí).
+        patron = re.compile(r"{%\s*url\s+(?![\"\'])([a-z_][a-z0-9_]*)\s*[%\s]")
+        fallos = []
+        for ruta in self._plantillas():
+            for n, linea in enumerate(ruta.read_text(encoding="utf-8").splitlines(), 1):
+                for m in patron.finditer(linea):
+                    fallos.append(f"{ruta}:{n} -> {{% url {m.group(1)} %}}")
+        assert not fallos, "nombres de URL sin comillas:\n" + "\n".join(fallos)
+
+    def test_process_siempre_lleva_comillas(self):
+        import re
+
+        patron = re.compile(r"process=(?![\"\'])[a-z]")
+        fallos = [
+            f"{ruta}:{n}"
+            for ruta in self._plantillas()
+            for n, linea in enumerate(ruta.read_text(encoding="utf-8").splitlines(), 1)
+            if patron.search(linea)
+        ]
+        assert not fallos, "process= sin comillas en:\n" + "\n".join(fallos)
