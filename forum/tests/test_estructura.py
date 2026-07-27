@@ -270,3 +270,24 @@ class TestArgumentosDeTagEntrecomillados:
             if patron.search(linea)
         ]
         assert not fallos, "process= sin comillas en:\n" + "\n".join(fallos)
+
+    def test_no_hay_comentarios_de_varias_lineas(self):
+        """`{# ... #}` solo comenta una línea.
+
+        En varias, Django no lo trata como comentario: imprime el texto en la
+        página y parsea los tags que contenga. Ya ocurrió dos veces — la segunda
+        llegó a producción con el comentario visible dentro del panel de login,
+        porque este test cubría las comillas pero no los comentarios.
+        """
+        import re
+
+        patron = re.compile(r"\{#(?:(?!#\}).)*?\n(?:(?!#\}).)*?#\}", re.S)
+        fallos = []
+        for ruta in self._plantillas():
+            texto = ruta.read_text(encoding="utf-8")
+            for m in patron.finditer(texto):
+                linea = texto[: m.start()].count("\n") + 1
+                fallos.append(f"{ruta}:{linea}")
+        assert not fallos, (
+            "comentarios {# #} de varias líneas (usa {% comment %}):\n" + "\n".join(fallos)
+        )

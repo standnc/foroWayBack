@@ -62,8 +62,10 @@
 
           {# Login form #}
           <div x-show="tab === 'login'">
-            {# El formulario vive en el parcial: HTMX lo devuelve tal cual al
-               reemplazar el contenedor con los errores de validación. #}
+            {% comment %}
+El formulario vive en el parcial: HTMX lo devuelve tal cual al
+               reemplazar el contenedor con los errores de validación.
+{% endcomment %}
             <div id="login-form-container">
               {% include "forum/_login_form.html" %}
             </div>

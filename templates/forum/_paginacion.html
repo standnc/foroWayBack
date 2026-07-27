@@ -1,5 +1,7 @@
-{# Controles de paginación reutilizables.
-   Conserva el resto de parámetros de la query (?q=..., filtros) al cambiar de página. #}
+{% comment %}
+Controles de paginación reutilizables.
+   Conserva el resto de parámetros de la query (?q=..., filtros) al cambiar de página.
+{% endcomment %}
 {% if is_paginated %}
 <nav class="flex items-center justify-center gap-2 mt-8" aria-label="Paginación">
   {% if page_obj.has_previous %}

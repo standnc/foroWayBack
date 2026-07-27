@@ -1,7 +1,9 @@
-{# Ficha lateral del autor de un mensaje.
+{% comment %}
+Ficha lateral del autor de un mensaje.
    Pinta lo que forum/signals.py ya calculaba en cada post y no se mostraba en
    ninguna parte: rango, barra de progreso, color y estado "Game Over".
-   En móvil se colapsa a una fila horizontal encima del mensaje. #}
+   En móvil se colapsa a una fila horizontal encima del mensaje.
+{% endcomment %}
 <div class="flex sm:flex-col items-center gap-3 sm:gap-1.5 sm:w-32 sm:flex-shrink-0 sm:text-center">
   {% if post.autor %}
   <a href="{% url 'forum:perfil' post.autor.username %}" class="flex sm:flex-col items-center gap-3 sm:gap-1.5">
