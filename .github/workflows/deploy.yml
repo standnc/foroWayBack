@@ -5,6 +5,9 @@ on:
     branches:
       - master
   pull_request:
+  # Permite relanzar el despliegue desde la interfaz o con `gh workflow run`,
+  # sin necesidad de inventar un commit.
+  workflow_dispatch:
 
 jobs:
   test:
@@ -43,7 +46,9 @@ jobs:
   deploy:
     name: Deploy
     needs: test
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: >
+      github.ref == 'refs/heads/master' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
