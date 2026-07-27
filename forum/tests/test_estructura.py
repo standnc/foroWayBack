@@ -344,3 +344,26 @@ class TestCssCompilado:
             "clase de forum/forms.py purgada: falta './forum/forms.py' en "
             "`content` de tailwind.config.js"
         )
+
+    def test_la_csp_permite_el_origen_de_los_estaticos(self):
+        """Si STATIC_URL apunta a otro dominio, style-src debe incluirlo.
+
+        Ocurrió al desplegar el build: STATIC_URL iba a static.clashbang.forum
+        (R2) pero la CSP solo permitía 'self', así que el navegador bloqueó la
+        hoja de estilos y el sitio se sirvió sin estilos. Un smoke test por
+        código HTTP no lo detecta: la página responde 200 igual.
+        """
+        from urllib.parse import urlparse
+
+        from django.conf import settings
+
+        static_url = getattr(settings, "STATIC_URL", "") or ""
+        partes = urlparse(static_url)
+        if not partes.netloc:
+            return  # mismo origen: 'self' basta
+
+        origen = f"{partes.scheme}://{partes.netloc}"
+        permitidos = settings.CONTENT_SECURITY_POLICY["DIRECTIVES"]["style-src"]
+        assert any(origen in o for o in permitidos), (
+            f"STATIC_URL sirve desde {origen} pero style-src no lo permite: {permitidos}"
+        )

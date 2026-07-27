@@ -186,11 +186,22 @@ USE_R2 = os.getenv("USE_R2", "False").lower() == "true"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
+# Los estáticos por R2 dan 403 (Cloudflare "error code: 1014", CNAME cruzado en
+# static.clashbang.forum). Afecta a TODO el bucket, no solo al CSS: se ve al
+# dejar de cargar Tailwind por CDN. Mientras no se arregle el dominio de R2, los
+# sirve Nginx desde el propio dominio (el location /static/ ya existe), que
+# además ahorra una petición cross-origin. Las imágenes del archivo siguen en R2
+# con sus URLs guardadas en BD, así que no dependen de esto.
+STATIC_DESDE_R2 = os.getenv("STATIC_DESDE_R2", "False").lower() == "true"
+
 if USE_R2:
     STORAGES = {
         "default": {"BACKEND": "forum.storage_backends.PublicMediaStorage"},
-        "staticfiles": {"BACKEND": "forum.storage_backends.StaticStorage"},
     }
+    if STATIC_DESDE_R2:
+        STORAGES["staticfiles"] = {"BACKEND": "forum.storage_backends.StaticStorage"}
+    else:
+        STATIC_URL = "/static/"
     AWS_ACCESS_KEY_ID = os.environ.get("R2_ACCESS_KEY_ID", "")
     AWS_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY", "")
     AWS_STORAGE_BUCKET_NAME = os.environ.get("R2_BUCKET_NAME", "")
@@ -228,6 +239,9 @@ CONTENT_SECURITY_POLICY = {
             # plantillas (barras de progreso y colores de rango dinámicos).
             "'unsafe-inline'",
             "https://fonts.googleapis.com",
+            # Necesario si los estáticos vuelven a servirse desde R2
+            # (STATIC_DESDE_R2=True): sin esto el navegador bloquea la hoja.
+            "https://static.clashbang.forum",
         ],
         "img-src": [
             "'self'",
