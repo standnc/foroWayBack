@@ -197,10 +197,15 @@ STATIC_DESDE_R2 = os.getenv("STATIC_DESDE_R2", "False").lower() == "true"
 if USE_R2:
     STORAGES = {
         "default": {"BACKEND": "forum.storage_backends.PublicMediaStorage"},
+        # La clave 'staticfiles' es obligatoria (staticfiles.E005); lo que
+        # cambia es a dónde escribe collectstatic y de dónde sirve STATIC_URL.
+        "staticfiles": (
+            {"BACKEND": "forum.storage_backends.StaticStorage"}
+            if STATIC_DESDE_R2
+            else {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}
+        ),
     }
-    if STATIC_DESDE_R2:
-        STORAGES["staticfiles"] = {"BACKEND": "forum.storage_backends.StaticStorage"}
-    else:
+    if not STATIC_DESDE_R2:
         STATIC_URL = "/static/"
     AWS_ACCESS_KEY_ID = os.environ.get("R2_ACCESS_KEY_ID", "")
     AWS_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY", "")
