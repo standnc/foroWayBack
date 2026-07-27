@@ -1,0 +1,48 @@
+<form hx-post="{% url 'forum:inline_signup' %}" hx-target="#signup-form-container" hx-swap="innerHTML" class="space-y-4">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="px-4 py-3 rounded-xl bg-red-900/30 border border-red-500/30 text-red-300 text-sm">
+    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if form.email.errors %}
+  <div class="px-4 py-3 rounded-xl bg-red-900/30 border border-red-500/30 text-red-300 text-sm">
+    {% for e in form.email.errors %}{{ e }}{% endfor %}
+  </div>
+  {% endif %}
+
+  <div>
+    <label for="id_signup_email" class="form-label-sunset block text-sm mb-1.5">Correo electr&oacute;nico</label>
+    <input type="email" name="email" id="id_signup_email" placeholder="tu@email.com" required
+           value="{{ form.email.value|default:'' }}"
+           class="form-input-sunset w-full px-4 py-2.5 text-sm transition-all
+                  {% if form.email.errors %}border-red-500{% endif %}">
+    {% if form.email.errors %}
+    <p class="mt-1 text-xs text-red-400">{% for e in form.email.errors %}{{ e }}{% endfor %}</p>
+    {% endif %}
+  </div>
+
+  <div>
+    <label for="id_signup_password1" class="form-label-sunset block text-sm mb-1.5">Contrase&ntilde;a</label>
+    <input type="password" name="password1" id="id_signup_password1" placeholder="M&iacute;n. 8 caracteres" required
+           class="form-input-sunset w-full px-4 py-2.5 text-sm transition-all
+                  {% if form.password1.errors %}border-red-500{% endif %}">
+    {% if form.password1.errors %}
+    <p class="mt-1 text-xs text-red-400">{% for e in form.password1.errors %}{{ e }}{% endfor %}</p>
+    {% endif %}
+  </div>
+
+  <div>
+    <label for="id_signup_password2" class="form-label-sunset block text-sm mb-1.5">Confirmar contrase&ntilde;a</label>
+    <input type="password" name="password2" id="id_signup_password2" placeholder="Repite la contrase&ntilde;a" required
+           class="form-input-sunset w-full px-4 py-2.5 text-sm transition-all
+                  {% if form.password2.errors %}border-red-500{% endif %}">
+    {% if form.password2.errors %}
+    <p class="mt-1 text-xs text-red-400">{% for e in form.password2.errors %}{{ e }}{% endfor %}</p>
+    {% endif %}
+  </div>
+
+  <button type="submit" class="form-btn-primary w-full py-2.5 text-sm transition-all">Crear cuenta</button>
+</form>

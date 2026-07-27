@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views_auth
 from . import views
 
 app_name = "forum"
@@ -20,4 +21,7 @@ urlpatterns = [
     path("moderacion/warning/crear/", views.CrearWarningView.as_view(), name="crear_warning"),
     path("moderacion/ban/crear/", views.CrearBanView.as_view(), name="crear_ban"),
     path("moderacion/historial/", views.HistorialModeracionView.as_view(), name="historial_moderacion"),
+    # Inline auth (HTMX)
+    path("api/auth/login/", views_auth.InlineLoginView.as_view(), name="inline_login"),
+    path("api/auth/signup/", views_auth.InlineSignupView.as_view(), name="inline_signup"),
 ]

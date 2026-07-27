@@ -1,0 +1,40 @@
+<form hx-post="{% url 'forum:inline_login' %}" hx-target="#login-form-container" hx-swap="innerHTML" class="space-y-4">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="px-4 py-3 rounded-xl bg-red-900/30 border border-red-500/30 text-red-300 text-sm">
+    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+  </div>
+  {% endif %}
+
+  <div>
+    <label for="id_login" class="form-label-sunset block text-sm mb-1.5">Correo electr&oacute;nico</label>
+    <input type="email" name="login" id="id_login" placeholder="tu@email.com" required
+           value="{{ form.login.value|default:'' }}"
+           class="form-input-sunset w-full px-4 py-2.5 text-sm transition-all
+                  {% if form.login.errors %}border-red-500{% endif %}">
+    {% if form.login.errors %}
+    <p class="mt-1 text-xs text-red-400">{% for e in form.login.errors %}{{ e }}{% endfor %}</p>
+    {% endif %}
+  </div>
+
+  <div>
+    <label for="id_password" class="form-label-sunset block text-sm mb-1.5">Contrase&ntilde;a</label>
+    <input type="password" name="password" id="id_password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required
+           class="form-input-sunset w-full px-4 py-2.5 text-sm transition-all
+                  {% if form.password.errors %}border-red-500{% endif %}">
+    {% if form.password.errors %}
+    <p class="mt-1 text-xs text-red-400">{% for e in form.password.errors %}{{ e }}{% endfor %}</p>
+    {% endif %}
+  </div>
+
+  <div class="flex items-center justify-between text-sm">
+    <label class="form-label-sunset flex items-center gap-2 font-medium">
+      <input type="checkbox" name="remember" id="id_remember" class="form-check-sunset rounded">
+      Recordarme
+    </label>
+    <a href="{% url 'account_reset_password' %}" class="form-link transition-all">¿Olvidaste tu contrase&ntilde;a?</a>
+  </div>
+
+  <button type="submit" class="form-btn-primary w-full py-2.5 text-sm transition-all">Entrar</button>
+</form>
