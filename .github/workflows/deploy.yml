@@ -10,6 +10,12 @@ jobs:
   test:
     name: Lint + Tests
     runs-on: ubuntu-latest
+    # En el runner no hay .env; sin esto, el gate de SECRET_KEY con DEBUG=False
+    # (config/settings.py) impide siquiera importar los settings.
+    env:
+      DEBUG: "True"
+      SECRET_KEY: ci-only-not-a-real-key-4f8a2b1e9d7c3a6501fe82b4d09c7a3e5b71d2
+      ALLOWED_HOSTS: localhost,127.0.0.1,testserver
     steps:
       - uses: actions/checkout@v4
 
