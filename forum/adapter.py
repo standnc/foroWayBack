@@ -9,18 +9,26 @@ User = get_user_model()
 
 
 class ForumAccountAdapter(DefaultAccountAdapter):
-    def generate_unique_username(self, email):
-        base = email.split("@")[0][:30]
-        username = base
-        while User.objects.filter(username=username).exists():
-            import random
-            username = f"{base}_{random.randint(1000, 9999)}"
-        return username
+    """Rellena el username, que allauth no gestiona.
+
+    ACCOUNT_USER_MODEL_USERNAME_FIELD = None, así que allauth ignora el campo,
+    pero sigue siendo unique en AbstractUser y forum:perfil lo usa en la URL.
+    La generación vive en CustomUserManager: no se sobreescribe el
+    generate_unique_username de allauth, cuya firma es (txts, regex).
+    """
+
+    def clean_email(self, email):
+        # A juego con CustomUserManager.create_user: el email se guarda siempre
+        # en minúsculas para que la cuenta sea accesible y no haya duplicados
+        # que solo difieran en mayúsculas.
+        return super().clean_email(email).lower()
 
     def save_user(self, request, user, form, commit=True):
         user = super().save_user(request, user, form, commit=False)
+        if user.email:
+            user.email = user.email.lower()
         if not user.username:
-            user.username = self.generate_unique_username(user.email)
+            user.username = User.objects.generate_unique_username(user.email)
         if commit:
             user.save()
         return user

@@ -1,10 +1,11 @@
 from datetime import timedelta
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.text import slugify
 from django.views.generic import CreateView, DetailView, FormView, ListView, TemplateView
 
 from accounts.models import User
@@ -90,15 +91,19 @@ class HiloDetailView(VerifiedRequiredMixin, DetailView):
 
     def post(self, request, *args, **kwargs):
         hilo = self.get_object()
+        # DetailView.get_context_data lee self.object; sin esto, una respuesta
+        # inválida se iba en AttributeError (500) al re-renderizar el formulario.
+        self.object = hilo
         form = PostForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)
             post.hilo = hilo
             post.autor = request.user
-            ultimo_orden = (
-                Post.objects.filter(hilo=hilo).aggregate(max=Count("orden"))["max"] or 0
-            )
-            post.orden = ultimo_orden + 1
+            post.es_historico = False
+            # Max, no Count: contar filas da un orden equivocado en cuanto el
+            # hilo tiene huecos (posts borrados) o no empieza en 0.
+            ultimo_orden = Post.objects.filter(hilo=hilo).aggregate(m=Max("orden"))["m"]
+            post.orden = 0 if ultimo_orden is None else ultimo_orden + 1
             post.save()
             hilo.ultimo_post = post.creado
             hilo.save(update_fields=["ultimo_post"])
@@ -122,12 +127,18 @@ class CrearHiloView(VerifiedRequiredMixin, LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.autor = self.request.user
+        # Hilo.es_historico es default=True (el grueso de la BD viene del scrape);
+        # un hilo creado desde el foro es nuevo por definición.
+        form.instance.es_historico = False
+        form.instance.slug = slugify(form.cleaned_data["titulo"])[:250]
+        form.instance.ultimo_post = timezone.now()
         response = super().form_valid(form)
         Post.objects.create(
             hilo=self.object,
             autor=self.request.user,
             contenido=form.cleaned_data["contenido_apertura"],
             orden=0,
+            es_historico=False,
         )
         return response
 
@@ -169,8 +180,9 @@ class PerfilView(DetailView):
     slug_field = "username"
     slug_url_kwarg = "username"
 
-    def get_object(self):
-        return User.objects.get(username=self.kwargs["username"])
+    def get_object(self, queryset=None):
+        # get_object_or_404: un perfil inexistente es un 404, no un 500.
+        return get_object_or_404(User, username=self.kwargs["username"])
 
 
 # ============ MODERATION VIEWS ============

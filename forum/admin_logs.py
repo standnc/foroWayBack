@@ -58,7 +58,12 @@ def log_view(request):
     source = request.GET.get("source", "gunicorn-error")
     level = request.GET.get("level", "INFO")
     search = request.GET.get("q", "")
-    max_lines = int(request.GET.get("max", 500))
+    # ?max=abc daba un 500; además hace falta un techo para no renderizar
+    # el log entero desde la query string.
+    try:
+        max_lines = min(max(int(request.GET.get("max", 500)), 1), 2000)
+    except (TypeError, ValueError):
+        max_lines = 500
     log_path = LOG_FILES.get(source)
     entries = []
     error_msg = None

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 
 
 class Categoria(models.Model):
@@ -92,7 +93,9 @@ class Hilo(models.Model):
     num_posts = models.PositiveIntegerField(default=0, editable=False)
     num_vistas = models.PositiveIntegerField(default=0)
 
-    creado = models.DateTimeField()
+    # default en vez de auto_now_add: migrar_sqlite escribe fechas de 2009 del
+    # scrape y auto_now_add las machacaría con la fecha de importación.
+    creado = models.DateTimeField(default=timezone.now)
     ultimo_post = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -135,7 +138,8 @@ class Post(models.Model):
     orden = models.PositiveIntegerField(default=0)
     contenido = models.TextField()
     contenido_html = models.TextField(blank=True)
-    creado = models.DateTimeField()
+    # Ver nota en Hilo.creado: default, no auto_now_add.
+    creado = models.DateTimeField(default=timezone.now)
     editado = models.DateTimeField(null=True, blank=True)
     es_historico = models.BooleanField(default=True)
 

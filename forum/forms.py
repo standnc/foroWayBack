@@ -108,6 +108,17 @@ class ResolverReportForm(forms.Form):
         label="Duración del baneo",
     )
 
+    def clean(self):
+        """La duración solo es obligatoria al banear.
+
+        Sin esto, resolver un reporte con acción "banear" y el selector vacío
+        llega a la vista como cadena vacía y revienta en int("") con un 500.
+        """
+        cleaned = super().clean()
+        if cleaned.get("accion") == "banear" and not cleaned.get("duracion_ban"):
+            self.add_error("duracion_ban", "Elige una duración para el baneo.")
+        return cleaned
+
 
 class WarningForm(forms.ModelForm):
     class Meta:
