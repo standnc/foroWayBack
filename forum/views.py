@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db import IntegrityError, transaction
 from django.db.models import Count, Max, Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
@@ -137,17 +138,34 @@ class HiloDetailView(VerifiedRequiredMixin, DetailView):
             post.hilo = hilo
             post.autor = request.user
             post.es_historico = False
-            # Max, no Count: contar filas da un orden equivocado en cuanto el
-            # hilo tiene huecos (posts borrados) o no empieza en 0.
-            ultimo_orden = Post.objects.filter(hilo=hilo).aggregate(m=Max("orden"))["m"]
-            post.orden = 0 if ultimo_orden is None else ultimo_orden + 1
-            post.save()
+            self._guardar_con_orden(post, hilo)
             hilo.ultimo_post = post.creado
             hilo.save(update_fields=["ultimo_post"])
             return redirect(f"{reverse('forum:hilo', kwargs={'pk': hilo.pk})}#post-{post.pk}")
         ctx = self.get_context_data(object=hilo)
         ctx["form"] = form
         return self.render_to_response(ctx)
+
+    @staticmethod
+    def _guardar_con_orden(post, hilo, intentos=5):
+        """Asigna el siguiente `orden` del hilo y guarda.
+
+        Max, no Count: contar filas da un orden equivocado en cuanto el hilo
+        tiene huecos (posts borrados) o no empieza en 0. Max+1 no es atómico,
+        así que dos respuestas simultáneas chocarían contra el UniqueConstraint
+        de (hilo, orden); en ese caso se recalcula y se reintenta.
+        """
+        for intento in range(intentos):
+            ultimo = Post.objects.filter(hilo=hilo).aggregate(m=Max("orden"))["m"]
+            post.orden = 0 if ultimo is None else ultimo + 1
+            try:
+                with transaction.atomic():
+                    post.save()
+                return post
+            except IntegrityError:
+                if intento == intentos - 1:
+                    raise
+                post.pk = None
 
 
 class CrearHiloView(VerifiedRequiredMixin, LoginRequiredMixin, CreateView):

@@ -152,6 +152,12 @@ class Post(models.Model):
             models.Index(fields=["autor"]),
             models.Index(fields=["id_original"]),
         ]
+        constraints = [
+            # Verificado sobre la BD de producción: 0 duplicados. Protege del
+            # cálculo de `orden` en la vista, que sí puede colisionar bajo
+            # peticiones concurrentes (Max+1 no es atómico).
+            models.UniqueConstraint(fields=["hilo", "orden"], name="post_orden_unico_por_hilo"),
+        ]
 
     def __str__(self):
         return f"Post #{self.pk} en {self.hilo}"
