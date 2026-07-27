@@ -59,12 +59,12 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H 172.239.238.6 >> ~/.ssh/known_hosts
 
-          # deploy.sh hace: pip install, check, migrate, collectstatic y reload de gunicorn.
+          # El fetch/reset/clean lo hace ya deploy.sh; aquí solo se traía para
+          # asegurar que el propio script existe antes de ejecutarlo.
           ssh admin@172.239.238.6 "
             cd /var/www/foroWayBack &&
             git fetch origin &&
             git reset --hard origin/master &&
-            git clean -fd -e .env -e .venv/ -e logs/ &&
             chmod +x deploy.sh &&
             ./deploy.sh
           "
