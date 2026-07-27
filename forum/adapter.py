@@ -9,32 +9,54 @@ User = get_user_model()
 
 
 class ForumAccountAdapter(DefaultAccountAdapter):
-    def generate_unique_username(self, email):
-        base = email.split("@")[0][:30]
-        username = base
-        while User.objects.filter(username=username).exists():
-            import random
-            username = f"{base}_{random.randint(1000, 9999)}"
-        return username
+    """Rellena el username, que allauth no gestiona.
+
+    ACCOUNT_USER_MODEL_USERNAME_FIELD = None, así que allauth ignora el campo,
+    pero sigue siendo unique en AbstractUser y forum:perfil lo usa en la URL.
+    La generación vive en CustomUserManager: no se sobreescribe el
+    generate_unique_username de allauth, cuya firma es (txts, regex).
+    """
+
+    def clean_email(self, email):
+        # A juego con CustomUserManager.create_user: el email se guarda siempre
+        # en minúsculas para que la cuenta sea accesible y no haya duplicados
+        # que solo difieran en mayúsculas.
+        return super().clean_email(email).lower()
 
     def save_user(self, request, user, form, commit=True):
         user = super().save_user(request, user, form, commit=False)
+        if user.email:
+            user.email = user.email.lower()
         if not user.username:
-            user.username = self.generate_unique_username(user.email)
+            user.username = User.objects.generate_unique_username(user.email)
         if commit:
             user.save()
         return user
 
 
+def _email_verificado_por_el_provider(sociallogin):
+    """¿El proveedor OAuth afirma haber verificado este email?
+
+    Solo cuenta la dirección que coincide con la de la cuenta social; que el
+    usuario tenga otra dirección verificada no autoriza nada sobre esta.
+    """
+    email_cuenta = (sociallogin.account.extra_data.get("email") or "").lower().strip()
+    for direccion in getattr(sociallogin, "email_addresses", None) or []:
+        if direccion.email.lower().strip() == email_cuenta:
+            return bool(direccion.verified)
+    return False
+
+
 class ForumSocialAccountAdapter(DefaultSocialAccountAdapter):
     """
     Evita colisiones de email entre OAuth y registro tradicional.
-    Si el email del proveedor OAuth ya existe en BD, vincula la cuenta social
-    al usuario existente en lugar de crear un duplicado.
-    También marca User.is_verified=True para cuentas OAuth con email verificado (D5).
+    Si el email del proveedor OAuth ya existe en BD **y el proveedor lo ha
+    verificado**, vincula la cuenta social al usuario existente en lugar de
+    crear un duplicado. También marca User.is_verified=True (D5).
     """
+
     def pre_social_login(self, request, sociallogin):
-        email = sociallogin.account.extra_data.get("email", "").lower().strip()
+        email = (sociallogin.account.extra_data.get("email") or "").lower().strip()
         if not email:
             return
 
@@ -47,8 +69,20 @@ class ForumSocialAccountAdapter(DefaultSocialAccountAdapter):
             return
 
         try:
-            existing_user = User.objects.get(email=email)
+            existing_user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
+            return
+
+        # Sin esta comprobación, cualquiera que cree una cuenta en un proveedor
+        # que no verifica el email (GitHub, Discord) usando la dirección de la
+        # víctima se queda con su cuenta del foro. Es el motivo por el que
+        # allauth no vincula por email automáticamente.
+        if not _email_verificado_por_el_provider(sociallogin):
+            logger.warning(
+                "Vinculación automática rechazada: %s no ha verificado el email %s "
+                "que ya pertenece al usuario id=%s. Se pedirá confirmación.",
+                sociallogin.account.provider, email, existing_user.pk,
+            )
             return
 
         logger.info(
@@ -61,12 +95,8 @@ class ForumSocialAccountAdapter(DefaultSocialAccountAdapter):
     def save_user(self, request, sociallogin, form=None):
         """Marca is_verified=True si el provider entrega el email verificado (D5)."""
         user = super().save_user(request, sociallogin, form)
-        try:
-            verified = sociallogin.email_addresses[0].verified if sociallogin.email_addresses else False
-        except (IndexError, AttributeError):
-            verified = False
 
-        if verified and not user.is_verified:
+        if _email_verificado_por_el_provider(sociallogin) and not user.is_verified:
             user.is_verified = True
             user.save(update_fields=["is_verified"])
             logger.info("OAuth (provider=%s) → User.is_verified=True para %s",

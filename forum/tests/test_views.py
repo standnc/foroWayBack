@@ -4,8 +4,8 @@ Tests de vistas del foro: status codes, templates usados, contexto, búsqueda.
 
 import pytest
 from django.urls import reverse
-from forum.models import Categoria, Hilo, Post
 
+from forum.tests.conftest import PostFactory
 
 # ─── Smoke tests: todas las páginas responden 200 ──────────
 
@@ -25,8 +25,8 @@ class TestSmoke:
         r = client.get(reverse("forum:categoria", kwargs={"slug": categoria.slug}))
         assert r.status_code == 200
 
-    def test_hilo_detail_200(self, client, hilo):
-        r = client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
+    def test_hilo_detail_200(self, auth_client, hilo):
+        r = auth_client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
         assert r.status_code == 200
 
     @pytest.mark.django_db
@@ -43,9 +43,8 @@ class TestSmoke:
         r = client.get(reverse("forum:buscar"), {"q": "xzxyzwz"})
         assert r.status_code == 200
 
-    @pytest.mark.django_db
-    def test_hilo_404(self, client):
-        r = client.get(reverse("forum:hilo", kwargs={"pk": 99999}))
+    def test_hilo_404(self, auth_client):
+        r = auth_client.get(reverse("forum:hilo", kwargs={"pk": 99999}))
         assert r.status_code == 404
 
     @pytest.mark.django_db
@@ -70,8 +69,8 @@ class TestTemplates:
         r = client.get(reverse("forum:categoria", kwargs={"slug": categoria.slug}))
         assert "forum/categoria_detail.html" in [t.name for t in r.templates]
 
-    def test_hilo_detail_template(self, client, hilo):
-        r = client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
+    def test_hilo_detail_template(self, auth_client, hilo):
+        r = auth_client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
         assert "forum/hilo_detail.html" in [t.name for t in r.templates]
 
     def test_buscar_template(self, client):
@@ -118,9 +117,9 @@ class TestContext:
         assert len(hilos) >= 1
         assert r.context["categoria"] == categoria
 
-    def test_hilo_detail_posts(self, client, hilo, post):
+    def test_hilo_detail_posts(self, auth_client, hilo, post):
         """Vista de hilo tiene sus posts."""
-        r = client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
+        r = auth_client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
         posts = list(r.context.get("posts", []))
         assert len(posts) >= 1
         assert r.context["hilo"] == hilo
@@ -142,19 +141,44 @@ class TestContext:
 # ─── Posts ordenados correctamente ────────────────────────
 
 class TestOrdenPosts:
-    def test_posts_orden_correcto(self, client, hilo_con_posts):
+    def test_posts_orden_correcto(self, auth_client, hilo_con_posts):
         """Posts se muestran en orden ascendente (1, 2, 3, 4, 5)."""
-        r = client.get(reverse("forum:hilo", kwargs={"pk": hilo_con_posts.pk}))
+        r = auth_client.get(reverse("forum:hilo", kwargs={"pk": hilo_con_posts.pk}))
         posts = list(r.context.get("posts", []))
         ordenes = [p.orden for p in posts]
         assert ordenes == sorted(ordenes), "Los posts deben estar ordenados por 'orden'"
 
-    def test_posts_no_invertidos(self, client, hilo, user):
+    def test_posts_no_invertidos(self, auth_client, hilo, user):
         """Más posts: confirmar que no están al revés."""
-        from forum.tests.conftest import PostFactory
         for i in range(3):
             PostFactory(hilo=hilo, autor=user, orden=i + 1)
-        r = client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
+        r = auth_client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
         posts = list(r.context.get("posts", []))
         ordenes = [p.orden for p in posts]
         assert ordenes == sorted(ordenes)
+
+
+# ─── Gate de verificación de email (T6.3) ─────────────────
+
+class TestGateVerificacion:
+    """El contenido de los hilos exige email verificado; los listados son públicos."""
+
+    def test_anonimo_en_hilo_va_a_login(self, client, hilo):
+        r = client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
+        assert r.status_code == 302
+        assert reverse("account_login") in r.url
+
+    def test_no_verificado_va_a_pantalla_de_espera(self, client, user, hilo):
+        client.force_login(user, backend="django.contrib.auth.backends.ModelBackend")
+        r = client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
+        assert r.status_code == 302
+        assert r.url == reverse("forum:verify_waiting")
+
+    def test_verificado_lee_el_hilo(self, auth_client, hilo, post):
+        r = auth_client.get(reverse("forum:hilo", kwargs={"pk": hilo.pk}))
+        assert r.status_code == 200
+
+    @pytest.mark.parametrize("nombre_url", ["forum:index", "forum:categorias", "forum:buscar"])
+    def test_listados_siguen_publicos(self, client, db, nombre_url):
+        """D2: anónimos ven listados y títulos, solo el contenido está gateado."""
+        assert client.get(reverse(nombre_url)).status_code == 200

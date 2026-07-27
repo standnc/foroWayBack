@@ -9,9 +9,9 @@ echo " Descargando últimos cambios..."
 git fetch origin
 git reset --hard origin/master
 
-# 2. Limpiar residuos (proteger .env y .venv)
+# 2. Limpiar residuos (proteger .env, .venv y los logs de la app)
 echo "🧹 Limpiando residuos..."
-git clean -fd -e .env -e .venv/
+git clean -fd -e .env -e .venv/ -e logs/
 
 # 3. Actualizar dependencias (usar pip, no uv)
 echo "📦 Actualizando dependencias..."

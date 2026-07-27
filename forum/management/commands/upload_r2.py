@@ -1,9 +1,12 @@
-import time, logging
-from django.core.management.base import BaseCommand
-from django.conf import settings
-from forum.models import Imagen
-import requests
+import logging
+import time
+
 import boto3
+import requests
+from django.conf import settings
+from django.core.management.base import BaseCommand
+
+from forum.models import Imagen
 
 log = logging.getLogger(__name__)
 

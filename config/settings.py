@@ -5,6 +5,8 @@ Entorno: LOCAL DEVELOPMENT (con compatibilidad VPS)
 """
 import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,9 +14,18 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ============ CORE ============
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-local-dev-key-change-me")
-# ✅ DESPUÉS
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+if not SECRET_KEY:
+    if not DEBUG:
+        # Sin esto, un .env que no carga en el VPS arrancaba en silencio con una
+        # clave conocida y firmaba sesiones y tokens de reset con ella.
+        raise ImproperlyConfigured(
+            "SECRET_KEY no está definida y DEBUG=False. Revisa el .env del servidor."
+        )
+    SECRET_KEY = "django-insecure-local-dev-key-change-me"
+
 ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")]
 
 # ============ APPS ============
@@ -52,6 +63,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Tras AuthenticationMiddleware: necesita request.user resuelto.
+    "forum.middleware.BanEnforcementMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -159,9 +172,10 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@clashbang.forum")
 AXES_ENABLED = True
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
-AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True
 AXES_RESET_ON_SUCCESS = True
-AXES_ONLY_USER_FAILURES = False
+# Sustituye a AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP / AXES_ONLY_USER_FAILURES,
+# deprecados en axes 6.x: bloquea por la combinación usuario + IP.
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 
 # ============ STORAGE (R2 o local) ============
 USE_R2 = os.getenv("USE_R2", "False").lower() == "true"
@@ -266,11 +280,20 @@ if not DEBUG:
     ]
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     ALLAUTH_TRUSTED_PROXY_COUNT = 2
-    CSRF_COOKIE_DOMAIN = ".clashbang.forum"
+    # Sin CSRF_COOKIE_DOMAIN: compartir la cookie con todo *.clashbang.forum
+    # la exponía a static.clashbang.forum, que sirve contenido subido desde R2.
+    # No hay ningún POST entre subdominios que lo necesite.
 
 # ============ LOGGING (Condicional LOCAL/VPS - Evita FileNotFoundError) ============
-LOG_DIR = BASE_DIR / "logs" if DEBUG else Path("/var/log/django")
-LOG_DIR.mkdir(parents=True, exist_ok=True)
+# Se puede forzar con LOG_DIR en .env. Sin él: logs/ en local, /var/log/django en el VPS.
+LOG_DIR = Path(os.getenv("LOG_DIR") or (BASE_DIR / "logs" if DEBUG else "/var/log/django"))
+try:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    # Entornos sin permiso sobre /var/log (CI, contenedores, otro servidor):
+    # caer a un directorio propio en vez de reventar al importar los settings.
+    LOG_DIR = BASE_DIR / "logs"
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 _LOG_LEVEL = "DEBUG" if DEBUG else "WARNING"
 

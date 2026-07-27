@@ -3,7 +3,7 @@ Tests de resolución de URLs: verificar que los nombres de ruta
 devuelven las URLs esperadas.
 """
 
-from django.urls import reverse, resolve
+from django.urls import resolve, reverse
 
 
 class TestURLs:

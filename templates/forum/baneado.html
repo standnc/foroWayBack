@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Cuenta suspendida — ClashBang Forum{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto mt-12 px-4">
+  <div class="card-sunset p-8 md:p-10 text-center">
+    <svg class="mx-auto h-16 w-16 text-red-500 drop-shadow mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+    </svg>
+
+    <h1 class="font-display text-2xl font-bold text-warm-title mb-2">Game Over</h1>
+    <p class="text-warm-desc text-sm mb-6">Tu cuenta está suspendida y se ha cerrado la sesión.</p>
+
+    <div class="text-left space-y-3 mb-6">
+      <div>
+        <p class="form-label-sunset text-xs uppercase tracking-wide mb-1">Motivo</p>
+        <p class="text-warm-desc text-sm">{{ ban.motivo }}</p>
+      </div>
+      <div>
+        <p class="form-label-sunset text-xs uppercase tracking-wide mb-1">Duración</p>
+        <p class="text-warm-desc text-sm">
+          {% if ban.expira %}
+            Hasta el {{ ban.expira|date:"d/m/Y" }} a las {{ ban.expira|date:"H:i" }}
+          {% else %}
+            Permanente
+          {% endif %}
+        </p>
+      </div>
+      <div>
+        <p class="form-label-sunset text-xs uppercase tracking-wide mb-1">Fecha</p>
+        <p class="text-warm-desc text-sm">{{ ban.creado|date:"d/m/Y H:i" }}</p>
+      </div>
+    </div>
+
+    <a href="{% url 'forum:index' %}"
+       class="form-btn-secondary inline-flex items-center gap-2 px-6 py-2.5 text-sm w-full justify-center">
+      Volver al inicio
+    </a>
+
+    <p class="text-muted text-xs mt-5">
+      Si crees que se trata de un error, escribe a
+      <span class="text-stat-active">apelaciones@clashbang.forum</span> indicando tu nombre de usuario.
+    </p>
+  </div>
+</div>
+{% endblock %}

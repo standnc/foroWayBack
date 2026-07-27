@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Borrar mensaje — ClashBang Forum{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="font-display text-2xl font-bold text-white mb-4">¿Borrar este mensaje?</h1>
+  <p class="text-slate-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
+
+  <article class="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 mb-6">
+    <div class="text-xs text-slate-500 mb-2">
+      {{ object.autor.public_name|default:"Anónimo" }} · {{ object.creado|date:"d/m/Y H:i" }}
+    </div>
+    <div class="prose prose-invert prose-sm max-w-none text-slate-300">
+      {{ object.contenido|linebreaks }}
+    </div>
+  </article>
+
+  <form method="post" class="flex items-center gap-3">
+    {% csrf_token %}
+    <button type="submit"
+            class="bg-red-600 hover:bg-red-500 text-white font-semibold px-5 py-2 rounded-lg transition-colors text-sm">
+      Sí, borrar
+    </button>
+    <a href="{% url 'forum:hilo' object.hilo.pk %}"
+       class="text-slate-400 hover:text-white transition-colors text-sm">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

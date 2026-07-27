@@ -191,6 +191,9 @@
           </a>
           <a href="{% url 'forum:categorias' %}" class="text-sm navbar-link transition-colors">Categorías</a>
           <a href="{% url 'forum:buscar' %}" class="text-sm navbar-link transition-colors">Buscar</a>
+          {% if user.is_authenticated and user.is_verified %}
+          <a href="{% url 'forum:crear_hilo' %}" class="text-sm navbar-link transition-colors">Nuevo hilo</a>
+          {% endif %}
           {% if user.is_staff or user.is_superuser %}
           <a href="{% url 'forum:moderation_panel' %}" class="text-sm navbar-link transition-colors">Moderar</a>
           {% endif %}
@@ -259,6 +262,9 @@
         <a href="/" class="mobile-link-sunset block px-3 py-2 rounded-lg text-sm font-medium transition-colors">Inicio</a>
         <a href="{% url 'forum:categorias' %}" class="mobile-link-sunset block px-3 py-2 rounded-lg text-sm font-medium transition-colors">Categorías</a>
         <a href="{% url 'forum:buscar' %}" class="mobile-link-sunset block px-3 py-2 rounded-lg text-sm font-medium transition-colors">Buscar</a>
+        {% if user.is_authenticated and user.is_verified %}
+        <a href="{% url 'forum:crear_hilo' %}" class="mobile-link-sunset block px-3 py-2 rounded-lg text-sm font-medium transition-colors">Nuevo hilo</a>
+        {% endif %}
         {% if user.is_staff or user.is_superuser %}
         <a href="{% url 'forum:moderation_panel' %}" class="mobile-link-sunset block px-3 py-2 rounded-lg text-sm font-medium transition-colors">Panel de Moderación</a>
         {% endif %}

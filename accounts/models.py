@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
 from .managers import CustomUserManager
 
 
@@ -27,7 +28,19 @@ class User(AbstractUser):
         ordering = ["-date_joined"]
 
     def __str__(self):
+        # __str__ acaba en el admin y en los logs; nunca en una plantilla
+        # pública. Para eso está public_name.
         return self.display_name or self.email
+
+    @property
+    def public_name(self):
+        """Nombre a mostrar en el foro. Nunca el email.
+
+        __str__ cae en el email cuando no hay display_name, y las plantillas lo
+        pintaban tal cual: cualquiera podía leer el email de cualquier usuario
+        en su perfil y en cada uno de sus mensajes.
+        """
+        return self.display_name or self.username or "Usuario"
 
     @property
     def num_posts(self):

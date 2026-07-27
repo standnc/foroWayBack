@@ -1,5 +1,6 @@
 import os
 import re
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
@@ -57,7 +58,12 @@ def log_view(request):
     source = request.GET.get("source", "gunicorn-error")
     level = request.GET.get("level", "INFO")
     search = request.GET.get("q", "")
-    max_lines = int(request.GET.get("max", 500))
+    # ?max=abc daba un 500; además hace falta un techo para no renderizar
+    # el log entero desde la query string.
+    try:
+        max_lines = min(max(int(request.GET.get("max", 500)), 1), 2000)
+    except (TypeError, ValueError):
+        max_lines = 500
     log_path = LOG_FILES.get(source)
     entries = []
     error_msg = None
@@ -65,7 +71,7 @@ def log_view(request):
     if log_path and os.path.exists(log_path):
         file_size = os.path.getsize(log_path)
         try:
-            with open(log_path, "r", errors="replace") as f:
+            with open(log_path, errors="replace") as f:
                 all_lines = f.readlines()
                 if len(all_lines) > 2000:
                     all_lines = all_lines[-2000:]

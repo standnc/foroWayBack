@@ -1,6 +1,6 @@
 from django.urls import path
-from . import views_auth
-from . import views
+
+from . import views, views_auth
 
 app_name = "forum"
 
@@ -11,6 +11,10 @@ urlpatterns = [
     path("nuevo-hilo/", views.CrearHiloView.as_view(), name="crear_hilo"),
     path("nuevo-hilo/<slug:slug>/", views.CrearHiloView.as_view(), name="crear_hilo_en_categoria"),
     path("hilo/<int:pk>/", views.HiloDetailView.as_view(), name="hilo"),
+    # Acciones sobre un mensaje
+    path("post/<int:pk>/editar/", views.EditarPostView.as_view(), name="editar_post"),
+    path("post/<int:pk>/borrar/", views.BorrarPostView.as_view(), name="borrar_post"),
+    path("post/<int:pk>/reportar/", views.CrearReportView.as_view(), name="reportar_post"),
     path("buscar/", views.BuscarView.as_view(), name="buscar"),
     path("perfil/<str:username>/", views.PerfilView.as_view(), name="perfil"),
     # Verificación (T6.3)

@@ -1,0 +1,15 @@
+line-length = 120
+target-version = "py312"
+
+exclude = [
+    ".venv",
+    "*/migrations/*",
+    "staticfiles",
+]
+
+[lint]
+select = ["E", "F", "I", "UP", "DJ"]
+ignore = [
+    "E501",   # el formato largo de los widgets Tailwind en forms.py es intencional
+    "DJ001",  # null=True en CharField: presente en el esquema heredado del scrape
+]

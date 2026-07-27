@@ -4,14 +4,14 @@ Fixtures compartidas para todos los tests del foro.
 Usa factory_boy para generar datos de prueba limpios y repetibles.
 """
 
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone
+from factory import Faker, Sequence, SubFactory
 from factory.django import DjangoModelFactory
-from factory import Faker, SubFactory, Sequence, post_generation
 
-from forum.models import Categoria, Hilo, Post, Imagen, Report, Warning, Ban, ModerationLog
 from accounts.models import User
-
+from forum.models import Ban, Categoria, Hilo, Imagen, Post, Report, Warning
 
 # ─── Factories ───────────────────────────────────────────────
 
@@ -45,8 +45,8 @@ class HiloFactory(DjangoModelFactory):
     titulo = Sequence(lambda n: f"Título del hilo {n}")
     slug = Sequence(lambda n: f"titulo-del-hilo-{n}")
     autor = SubFactory(UserFactory)
-    creado = Faker("date_time_this_decade", tzinfo=timezone.utc)
-    ultimo_post = Faker("date_time_this_decade", tzinfo=timezone.utc)
+    creado = Faker("date_time_this_decade", tzinfo=UTC)
+    ultimo_post = Faker("date_time_this_decade", tzinfo=UTC)
 
 
 class PostFactory(DjangoModelFactory):
@@ -57,7 +57,7 @@ class PostFactory(DjangoModelFactory):
     hilo = SubFactory(HiloFactory)
     autor = SubFactory(UserFactory)
     contenido = Faker("paragraph")
-    creado = Faker("date_time_this_decade", tzinfo=timezone.utc)
+    creado = Faker("date_time_this_decade", tzinfo=UTC)
     orden = Sequence(lambda n: n % 10 + 1)
 
 
@@ -79,9 +79,33 @@ def user(db):
 
 
 @pytest.fixture
+def verified_user(db):
+    """Usuario con el email confirmado: el único que atraviesa VerifiedRequiredMixin."""
+    return UserFactory(is_verified=True)
+
+
+@pytest.fixture
 def moderator(db):
     """Usuario moderador (staff)."""
-    return UserFactory(is_staff=True)
+    return UserFactory(is_staff=True, is_verified=True)
+
+
+@pytest.fixture
+def auth_client(client, verified_user):
+    """Cliente autenticado con un usuario verificado.
+
+    El backend se pasa explícito porque AUTHENTICATION_BACKENDS empieza por
+    AxesStandaloneBackend y force_login usaría ese por defecto.
+    """
+    client.force_login(verified_user, backend="django.contrib.auth.backends.ModelBackend")
+    return client
+
+
+@pytest.fixture
+def staff_client(client, moderator):
+    """Cliente autenticado con un moderador (staff)."""
+    client.force_login(moderator, backend="django.contrib.auth.backends.ModelBackend")
+    return client
 
 
 @pytest.fixture
@@ -127,7 +151,7 @@ def ban(db, user, moderator):
         moderador=moderator,
         motivo="Spam en el foro",
         tipo="temporal",
-        expira=datetime(2027, 1, 1, tzinfo=timezone.utc),
+        expira=datetime(2027, 1, 1, tzinfo=UTC),
     )
 
 

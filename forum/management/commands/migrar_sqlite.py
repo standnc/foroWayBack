@@ -2,8 +2,25 @@ import os
 import sqlite3
 import sys
 from datetime import datetime
+
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from forum.models import Categoria, Hilo, Post, Imagen
+from django.utils import timezone
+
+from forum.models import Categoria, Hilo, Imagen, Post
+from forum.signals import contadores_en_pausa
+
+# Fecha de referencia cuando el scrape no trae una utilizable.
+FECHA_POR_DEFECTO = datetime(2009, 1, 1)
+
+
+def _aware(fecha):
+    """Con USE_TZ=True, guardar datetimes naive provoca RuntimeWarning y
+    desplaza las fechas del scrape según la zona activa."""
+    if fecha is None or timezone.is_aware(fecha):
+        return fecha
+    return timezone.make_aware(fecha, timezone.get_default_timezone())
+
 
 def parse_fecha(texto):
     if not texto or texto == "0000-00-00":
@@ -11,10 +28,10 @@ def parse_fecha(texto):
     texto = texto.strip()
     for f in ("%d/%m/%Y", "%d/%m/%y", "%Y-%m-%d", "%Y/%m/%d"):
         try:
-            return datetime.strptime(texto, f)
+            return _aware(datetime.strptime(texto, f))
         except ValueError:
             continue
-    return datetime(2009, 1, 1)
+    return _aware(FECHA_POR_DEFECTO)
 
 class Command(BaseCommand):
     help = "Migra datos de SQLite (foro.db) a PostgreSQL"
@@ -28,6 +45,12 @@ class Command(BaseCommand):
             self.stderr.write(f"ERROR: no encuentra {db_path}")
             sys.exit(1)
 
+        # Sin pausar las señales, mantener los contadores fila a fila serían
+        # dos queries extra por cada uno de los miles de posts importados.
+        with contadores_en_pausa():
+            self._importar(db_path)
+
+    def _importar(self, db_path):
         self.stdout.write(f"Conectando a SQLite: {db_path}")
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
@@ -39,7 +62,8 @@ class Command(BaseCommand):
         for row in cur.fetchall():
             Categoria.objects.update_or_create(
                 id_original=row[0],
-                defaults={"slug": row[1], "nombre": row[2]},
+                # es_clashbang explícito: todo lo que viene del scrape es archivo.
+                defaults={"slug": row[1], "nombre": row[2], "es_clashbang": False},
             )
             c += 1
         self.stdout.write(f"  {c} categorías")
@@ -64,7 +88,7 @@ class Command(BaseCommand):
                     "url_original": row[3] or "",
                     "archivo_html": row[4] or "",
                     "num_posts": row[5] or 0,
-                    "creado": fecha or datetime(2009, 1, 1),
+                    "creado": fecha or _aware(FECHA_POR_DEFECTO),
                     "ultimo_post": fecha,
                     "es_historico": True,
                 },
@@ -88,7 +112,7 @@ class Command(BaseCommand):
                     "autor_historico": row[3] or "",
                     "msg_id": row[2] or "",
                     "contenido": row[5] or "",
-                    "creado": fecha or datetime(2009, 1, 1),
+                    "creado": fecha or _aware(FECHA_POR_DEFECTO),
                     "orden": row[6] or 0,
                     "es_historico": True,
                 },
@@ -112,4 +136,10 @@ class Command(BaseCommand):
         self.stdout.write(f"  {c} imágenes")
 
         conn.close()
+
+        # Los contadores de Categoria e Hilo quedan a cero tras importar:
+        # sin esto, /categorias/ muestra el archivo con 0 temas y 0 mensajes.
+        self.stdout.write("\n--- Contadores ---")
+        call_command("recalcular_contadores")
+
         self.stdout.write("\n✅ Migración completada")
