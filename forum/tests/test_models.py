@@ -2,12 +2,12 @@
 Tests de modelos del foro: creación, str, constraints, relaciones.
 """
 
+
 import pytest
-from datetime import datetime, timezone
 
-from forum.models import Categoria, Hilo, Post, Imagen, Report, Warning, Ban, ModerationLog
 from accounts.models import User
-
+from forum.models import Ban, Categoria, ModerationLog, Report
+from forum.tests.conftest import PostFactory
 
 # ─── Categoria ──────────────────────────────────────────────
 
@@ -209,7 +209,3 @@ class TestRelationships:
 
     def test_post_tiene_imagenes(self, post, imagen):
         assert post.imagenes.count() >= 1
-
-
-# Import PostFactory for test_orden_secuencial
-from .conftest import PostFactory

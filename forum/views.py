@@ -1,14 +1,17 @@
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, FormView
+from datetime import timedelta
+
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
-from django.db.models import Count, Q
 from django.utils import timezone
-from datetime import timedelta
-from .mixins import VerifiedRequiredMixin
-from .models import Categoria, Hilo, Post, Report, Warning, Ban, ModerationLog
-from .forms import HiloForm, PostForm, ResolverReportForm, WarningForm, BanForm
+from django.views.generic import CreateView, DetailView, FormView, ListView, TemplateView
+
 from accounts.models import User
+
+from .forms import BanForm, HiloForm, PostForm, ResolverReportForm, WarningForm
+from .mixins import VerifiedRequiredMixin
+from .models import Ban, Categoria, Hilo, ModerationLog, Post, Report, Warning
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -237,7 +240,7 @@ class ResolverReportView(StaffRequiredMixin, FormView):
             Warning.objects.create(
                 usuario=target_user,
                 moderador=self.request.user,
-                motivo=nota or "Advertencia por reporte #{}".format(self.report.pk),
+                motivo=nota or f"Advertencia por reporte #{self.report.pk}",
             )
 
         if accion == "banear" and target_user:
@@ -246,7 +249,7 @@ class ResolverReportView(StaffRequiredMixin, FormView):
             Ban.objects.create(
                 usuario=target_user,
                 moderador=self.request.user,
-                motivo=nota or "Baneo por reporte #{}".format(self.report.pk),
+                motivo=nota or f"Baneo por reporte #{self.report.pk}",
                 tipo="permanente" if duracion == "permanente" else "temporal",
                 activo=True,
                 expira=(timezone.now() + timedelta(days=dias)) if dias else None,
@@ -255,7 +258,7 @@ class ResolverReportView(StaffRequiredMixin, FormView):
         ModerationLog.objects.create(
             moderador=self.request.user,
             accion="resolver_reporte",
-            descripcion="Reporte #{} resuelto: {}".format(self.report.pk, accion),
+            descripcion=f"Reporte #{self.report.pk} resuelto: {accion}",
             target_post=self.report.post,
             target_hilo=self.report.hilo,
             target_usuario=target_user,
@@ -279,9 +282,7 @@ class CrearWarningView(StaffRequiredMixin, CreateView):
         ModerationLog.objects.create(
             moderador=self.request.user,
             accion="advertir",
-            descripcion="Advertencia a {}: {}".format(
-                form.instance.usuario.email, form.instance.motivo[:100]
-            ),
+            descripcion=f"Advertencia a {form.instance.usuario.email}: {form.instance.motivo[:100]}",
             target_usuario=form.instance.usuario,
         )
         return response
@@ -306,9 +307,7 @@ class CrearBanView(StaffRequiredMixin, CreateView):
         ModerationLog.objects.create(
             moderador=self.request.user,
             accion="banear",
-            descripcion="Ban {} a {}: {}".format(
-                form.instance.tipo, form.instance.usuario.email, form.instance.motivo[:100]
-            ),
+            descripcion=f"Ban {form.instance.tipo} a {form.instance.usuario.email}: {form.instance.motivo[:100]}",
             target_usuario=form.instance.usuario,
         )
         return response

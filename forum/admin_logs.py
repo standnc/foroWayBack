@@ -1,5 +1,6 @@
 import os
 import re
+
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
@@ -65,7 +66,7 @@ def log_view(request):
     if log_path and os.path.exists(log_path):
         file_size = os.path.getsize(log_path)
         try:
-            with open(log_path, "r", errors="replace") as f:
+            with open(log_path, errors="replace") as f:
                 all_lines = f.readlines()
                 if len(all_lines) > 2000:
                     all_lines = all_lines[-2000:]

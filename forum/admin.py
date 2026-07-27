@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Categoria, Hilo, Post, Imagen, Report, Warning, Ban, ModerationLog
+
+from .models import Ban, Categoria, Hilo, Imagen, ModerationLog, Post, Report, Warning
 
 
 @admin.register(Categoria)

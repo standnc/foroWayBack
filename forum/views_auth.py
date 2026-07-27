@@ -1,10 +1,9 @@
+import logging
+
+from allauth.account.forms import LoginForm, SignupForm
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.views import View
-from django.contrib.auth import login as auth_login
-from allauth.account.forms import LoginForm, SignupForm
-from allauth.account.adapter import get_adapter
-import logging
 
 logger = logging.getLogger("foro")
 
@@ -20,7 +19,7 @@ class InlineLoginView(View):
                     response = HttpResponse()
                     response["HX-Redirect"] = "/"
                     return response
-            except Exception as e:
+            except Exception:
                 logger.exception("InlineLogin error")
                 response = HttpResponse()
                 response["HX-Redirect"] = "/"
@@ -39,14 +38,13 @@ class InlineSignupView(View):
         if form.is_valid():
             try:
                 user = form.save(request)
-                from allauth.account.utils import perform_login
                 from allauth.account.internal.flows.signup import complete_signup
                 resp = complete_signup(request, user=user, redirect_url="/", by_passkey=False)
                 if resp:
                     response = HttpResponse()
                     response["HX-Redirect"] = "/"
                     return response
-            except Exception as e:
+            except Exception:
                 logger.exception("InlineSignup error")
                 response = HttpResponse()
                 response["HX-Redirect"] = "/"

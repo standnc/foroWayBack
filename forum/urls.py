@@ -1,6 +1,6 @@
 from django.urls import path
-from . import views_auth
-from . import views
+
+from . import views, views_auth
 
 app_name = "forum"
 

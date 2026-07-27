@@ -5,6 +5,7 @@ Entorno: LOCAL DEVELOPMENT (con compatibilidad VPS)
 """
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -159,9 +160,10 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@clashbang.forum")
 AXES_ENABLED = True
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
-AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True
 AXES_RESET_ON_SUCCESS = True
-AXES_ONLY_USER_FAILURES = False
+# Sustituye a AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP / AXES_ONLY_USER_FAILURES,
+# deprecados en axes 6.x: bloquea por la combinación usuario + IP.
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 
 # ============ STORAGE (R2 o local) ============
 USE_R2 = os.getenv("USE_R2", "False").lower() == "true"
@@ -269,8 +271,15 @@ if not DEBUG:
     CSRF_COOKIE_DOMAIN = ".clashbang.forum"
 
 # ============ LOGGING (Condicional LOCAL/VPS - Evita FileNotFoundError) ============
-LOG_DIR = BASE_DIR / "logs" if DEBUG else Path("/var/log/django")
-LOG_DIR.mkdir(parents=True, exist_ok=True)
+# Se puede forzar con LOG_DIR en .env. Sin él: logs/ en local, /var/log/django en el VPS.
+LOG_DIR = Path(os.getenv("LOG_DIR") or (BASE_DIR / "logs" if DEBUG else "/var/log/django"))
+try:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    # Entornos sin permiso sobre /var/log (CI, contenedores, otro servidor):
+    # caer a un directorio propio en vez de reventar al importar los settings.
+    LOG_DIR = BASE_DIR / "logs"
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 _LOG_LEVEL = "DEBUG" if DEBUG else "WARNING"
 

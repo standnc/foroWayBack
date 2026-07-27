@@ -2,8 +2,11 @@ import os
 import sqlite3
 import sys
 from datetime import datetime
+
 from django.core.management.base import BaseCommand
-from forum.models import Categoria, Hilo, Post, Imagen
+
+from forum.models import Categoria, Hilo, Imagen, Post
+
 
 def parse_fecha(texto):
     if not texto or texto == "0000-00-00":

@@ -1,7 +1,8 @@
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
-from django.core.validators import MinValueValidator, MaxValueValidator
+
 
 class Categoria(models.Model):
     """
@@ -44,6 +45,13 @@ class UserProfile(models.Model):
     )
     color_rango = models.CharField(max_length=7, default='#94a3b8')
 
+    class Meta:
+        verbose_name = 'Perfil de usuario'
+        verbose_name_plural = 'Perfiles de usuario'
+
+    def __str__(self):
+        return f"Perfil de {self.user.email}"
+
     @property
     def mensajes_count(self):
         return self.user.posts.count()
@@ -52,12 +60,6 @@ class UserProfile(models.Model):
     def is_game_over(self):
         return self.estado_usuario in ('baneado', 'desaparecido')
 
-    class Meta:
-        verbose_name = 'Perfil de usuario'
-        verbose_name_plural = 'Perfiles de usuario'
-
-    def __str__(self):
-        return f"Perfil de {self.user.email}"
 
 class Hilo(models.Model):
     """

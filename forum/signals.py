@@ -1,5 +1,5 @@
-import math
 import logging
+import math
 
 from allauth.account.signals import email_confirmed
 from django.db.models.signals import post_save
