@@ -27,8 +27,28 @@ jobs:
           python-version: "3.12"
           cache: pip
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
       - name: Instalar dependencias
-        run: pip install -r requirements-dev.txt
+        run: |
+          pip install -r requirements-dev.txt
+          npm ci
+
+      - name: Comprobar que el CSS compilado está al día
+        # static/css/app.css se commitea porque el VPS no tiene Node. Si alguien
+        # edita el fuente o una plantilla y olvida recompilar, se desplegarían
+        # estilos viejos: aquí se recompila y se compara con lo commiteado.
+        run: |
+          npm run build:css
+          if ! git diff --quiet -- static/css/app.css; then
+            echo "::error::static/css/app.css no coincide con el fuente. Ejecuta 'npm run build:css' y commitea el resultado."
+            git diff --stat -- static/css/app.css
+            exit 1
+          fi
+          echo "CSS compilado al día."
 
       - name: Ruff
         run: ruff check .

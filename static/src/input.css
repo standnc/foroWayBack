@@ -1,0 +1,113 @@
+/* Fuente del CSS del foro. Se compila con:
+ *     npm run build:css      (o npm run watch:css en desarrollo)
+ * y produce static/css/app.css, que es el que sirve Django.
+ *
+ * El bloque "BoomBang Sunset" de abajo se movió TAL CUAL desde el <style>
+ * inline de base.html: mismas declaraciones y mismo orden, para no alterar el
+ * resultado renderizado. Los !important siguen ahí a propósito — quitarlos es
+ * un rediseño, no una migración, y toca hacerlo con capturas delante
+ * (scripts/capturar_visual.py). Ver todos.md 3.7.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fredoka e Inter se cargan desde Google Fonts en base.html. */
+
+[x-cloak] { display: none !important; }
+.htmx-indicator { opacity: 0; transition: opacity 200ms; }
+.htmx-request .htmx-indicator { opacity: 1; }
+.htmx-request.htmx-indicator { opacity: 1; }
+
+/* --- Ambiente: fondo ámbar/madera. Texto base CREMA (contraste AA sobre ámbar oscuro) --- */
+body{background:linear-gradient(to bottom,#2a1606,#1c0f04,#120a02)!important;color:#f3e6c8!important}
+.glow-sunburst{width:760px;height:760px;background:repeating-conic-gradient(from 0deg,rgba(255,215,0,.09) 0deg 5deg,rgba(255,140,40,.05) 5deg 10deg,transparent 10deg 20deg)}
+.glow-gold{width:520px;height:520px;background:radial-gradient(circle,rgba(255,200,80,.16) 0%,transparent 70%)}
+.glow-coral{width:600px;height:600px;background:radial-gradient(circle,rgba(255,120,40,.13) 0%,transparent 70%)}
+
+/* --- Navbar glossy naranja --- */
+.navbar-sunset{background:linear-gradient(to right,#ff9a3c,#ff7a18,#e8590c)!important;border-bottom:2px solid #b07a45!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 6px 22px rgba(0,0,0,.35)!important}
+.navbar-link{color:#fff3d6!important;font-weight:600!important}
+.navbar-link:hover{color:#ffd700!important;text-shadow:0 0 8px rgba(255,215,0,.6)}
+.navbar-link-active{color:#ffd700!important;font-weight:700!important;text-shadow:0 0 8px rgba(255,215,0,.55)}
+.navbar-brand{color:#fff3d6!important;font-family:Fredoka,system-ui,sans-serif!important}
+.brand-accent{color:#ffd700!important}
+.icon-btn-sunset{color:rgba(255,243,214,.85)!important}
+.icon-btn-sunset:hover{color:#ffd700!important;background:rgba(0,0,0,.12)!important}
+.profile-chip-sunset{background:rgba(0,0,0,.18)!important;border:1px solid rgba(255,243,214,.35)!important;color:#fff3d6!important}
+.profile-chip-sunset:hover{background:rgba(0,0,0,.28)!important}
+.avatar-sunset{background:linear-gradient(135deg,#ffd700,#ff6b35)!important;color:#5b3a1a!important}
+
+/* --- Menú móvil --- */
+.mobile-menu-sunset{background:linear-gradient(to bottom,#3a1f08,#2a1606)!important;border-top:1px solid #5e3c1c!important}
+.mobile-link-sunset{color:#f3e6c8!important}
+.mobile-link-sunset:hover{background:rgba(255,154,60,.16)!important;color:#ffd700!important}
+.mobile-hr-sunset{border-color:#5e3c1c!important}
+
+/* --- Footer sepia --- */
+.footer-sunset{background:#1c0f04!important;color:#d8b98a!important;border-top:1px solid #5e3c1c!important}
+.footer-brand{color:#fff3d6!important}
+.footer-link{color:#d8b98a!important}
+.footer-link:hover{color:#ffd700!important}
+
+/* --- Mensajes flash (cajas crema legibles sobre ámbar) --- */
+.msg-success{background:#fbf1dd!important;border:1px solid #e0a020!important;color:#7a4a12!important}
+.msg-error{background:#fde8e0!important;border:1px solid #c2410c!important;color:#9a3412!important}
+.msg-warning{background:#fff3d6!important;border:1px solid #e6c200!important;color:#8a6d00!important}
+.msg-info{background:#fbf1dd!important;border:1px solid #e7d3ad!important;color:#5b3a1a!important}
+
+/* --- Botones generales --- */
+.btn-sunset{background:linear-gradient(to right,#ff9a3c,#e8590c)!important;color:#fff3d6!important;font-weight:700!important;border-radius:10px!important;box-shadow:0 6px 18px rgba(232,89,12,.35)!important}
+.btn-sunset:hover{background:linear-gradient(to right,#e8590c,#c2410c)!important}
+.btn-sunset-outline{background:transparent!important;color:#fff3d6!important;border:2px solid rgba(255,243,214,.6)!important;border-radius:10px!important;font-weight:600!important}
+.btn-sunset-outline:hover{background:rgba(255,154,60,.22)!important;border-color:#ffd700!important;color:#ffd700!important}
+
+/* --- Formularios (login/registro) cálidos --- */
+.form-sunset{background:#fbf1dd!important;border:1px solid #e7d3ad!important;border-radius:16px!important;color:#5b3a1a!important;box-shadow:0 18px 50px rgba(0,0,0,.4)!important}
+.form-input-sunset{background:#fff8ea!important;border:1px solid #f0c070!important;color:#5b3a1a!important;border-radius:10px!important}
+.form-input-sunset::placeholder{color:#b9986a!important}
+.form-input-sunset:focus{border-color:#e8590c!important;box-shadow:0 0 0 3px rgba(232,89,12,.2)!important;outline:none!important}
+.form-label-sunset{color:#5b3a1a!important;font-weight:600!important}
+.form-btn-primary{background:linear-gradient(to right,#ff9a3c,#e8590c)!important;color:#fff3d6!important;font-weight:700!important;border-radius:10px!important;box-shadow:0 6px 16px rgba(232,89,12,.3)!important}
+.form-btn-primary:hover{background:linear-gradient(to right,#e8590c,#c2410c)!important}
+.form-btn-secondary{background:#f6e8cd!important;color:#5b3a1a!important;border:1px solid #e0a850!important;border-radius:10px!important;font-weight:600!important}
+.form-btn-secondary:hover{background:#f0dcb4!important}
+.form-check-sunset{accent-color:#e8590c!important}
+.sep-cream{background:#fbf1dd!important;color:#a98c63!important}
+.social-btn-sunset{background:#fff8ea!important;border:1px solid #f0c070!important;color:#5b3a1a!important;border-radius:10px!important}
+.social-btn-sunset:hover{background:#fdeccb!important;border-color:#e8590c!important}
+.tab-active{color:#e8590c!important;border-bottom:2px solid #e8590c!important}
+.tab-idle{color:#8a6d4f!important}
+.tab-idle:hover{color:#5b3a1a!important}
+.form-tabs-border{border-color:#e7d3ad!important}
+.form-link{color:#c2410c!important}
+.form-link:hover{color:#e8590c!important}
+.form-fineprint{color:#a98c63!important}
+
+/* --- Hero --- */
+.hero-title{color:#fff3d6!important;font-family:Fredoka,system-ui,sans-serif!important;text-shadow:0 2px 10px rgba(0,0,0,.35)}
+.hero-accent{background:linear-gradient(to right,#ffd700,#ff6b35)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+.hero-subtitle{color:#d8b98a!important}
+.hero-badge{background:#fff3d6!important;color:#e8590c!important;border:1px solid #f0c070!important;box-shadow:0 4px 14px rgba(0,0,0,.25)!important}
+
+/* --- Stats --- */
+.stat-number{font-family:Fredoka,system-ui,sans-serif!important;font-weight:700!important}
+.stat-gold{color:#ffd700!important}
+.stat-coral{color:#ff6b35!important}
+.stat-amber{color:#ff9a3c!important}
+.stat-deep{color:#e8590c!important}
+.stat-label{color:#a98c63!important}
+
+/* --- Cards / cajas cálidas --- */
+.card-sunset{background:#fbf1dd!important;border:1px solid #e7d3ad!important;border-radius:14px!important;color:#5b3a1a!important;box-shadow:0 10px 30px rgba(0,0,0,.3)!important}
+.card-sunset-hover:hover{border-color:#e8590c!important;box-shadow:0 14px 38px rgba(232,89,12,.22)!important}
+.text-warm-title{color:#5b3a1a!important}
+.text-warm-desc{color:#8a6d4f!important}
+.cat-ico{background:#fff3d6!important;border:1px solid #f0dcae!important}
+.welcome-band{background:linear-gradient(to right,rgba(255,154,60,.18),rgba(255,107,53,.06),transparent)!important;border:1px solid #f0a850!important}
+
+/* --- Puente cálido: recalienta cajas slate de páginas aún no rediseñadas (buscar/perfil/hilo/…) --- */
+main [class*="bg-slate-800"],main [class*="bg-slate-900"],main [class*="bg-retro-card"],main [class*="bg-retro-dark"]{background-color:rgba(28,15,4,.55)!important}
+main [class*="border-slate-700"],main [class*="border-slate-800"],main [class*="border-retro-border"]{border-color:rgba(176,122,69,.4)!important}
+main [class*="text-slate-500"],main [class*="text-slate-600"]{color:#c9a877!important}

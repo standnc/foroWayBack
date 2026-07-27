@@ -180,6 +180,12 @@ AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 # ============ STORAGE (R2 o local) ============
 USE_R2 = os.getenv("USE_R2", "False").lower() == "true"
 
+# Comunes a ambos modos: collectstatic tiene que encontrar el CSS compilado
+# (static/css/app.css, generado por `npm run build:css`) tanto si los estáticos
+# acaban en R2 como en disco.
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
 if USE_R2:
     STORAGES = {
         "default": {"BACKEND": "forum.storage_backends.PublicMediaStorage"},
@@ -198,7 +204,6 @@ if USE_R2:
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 else:
     STATIC_URL = "/static/"
-    STATIC_ROOT = BASE_DIR / "staticfiles"
     MEDIA_URL = "/media/"
     MEDIA_ROOT = BASE_DIR / "media"
 
@@ -207,20 +212,22 @@ CONTENT_SECURITY_POLICY = {
     "DIRECTIVES": {
         "default-src": ["'self'"],
         "script-src": [
+            "'self'",
+            # Alpine evalúa sus expresiones (x-data, @click…) con new Function,
+            # así que necesita unsafe-eval mientras siga en uso. unsafe-inline
+            # cae cuando se muevan los <script> inline que quedan en base.html.
             "'unsafe-inline'",
             "'unsafe-eval'",
-            "'self'",
-            "https://unpkg.com",
-            "https://cdn.jsdelivr.net",
-            "https://cdn.tailwindcss.com",
+            "https://cdn.jsdelivr.net",  # Alpine y HTMX
             "https://accounts.google.com/gsi/client",
         ],
         "style-src": [
             "'self'",
+            # Tailwind ya no se compila en el navegador: el CSS se sirve desde
+            # 'self'. unsafe-inline queda solo por los style="" de las
+            # plantillas (barras de progreso y colores de rango dinámicos).
             "'unsafe-inline'",
             "https://fonts.googleapis.com",
-            "https://cdn.jsdelivr.net",
-            "https://cdn.tailwindcss.com",
         ],
         "img-src": [
             "'self'",

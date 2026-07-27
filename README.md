@@ -11,7 +11,7 @@ Producción: <https://foro.clashbang.forum>
 
 - Django 6.0.7 · Python 3.12 · PostgreSQL 16 (SQLite en local)
 - django-allauth 65 (email + Google/Discord/GitHub) · django-axes · django-csp
-- Tailwind + Alpine.js + HTMX (por CDN, ver *Limitaciones*)
+- Tailwind compilado (CLI) + Alpine.js y HTMX por CDN
 - Cloudflare R2 para estáticos e imágenes (django-storages)
 - Nginx + Gunicorn + systemd en el VPS
 
@@ -22,6 +22,7 @@ git clone git@github.com:standnc/foroWayBack.git bbforo-app
 cd bbforo-app
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt        # o requirements.txt en producción
+npm ci                                     # solo si vas a tocar los estilos
 
 cp .env.example .env                       # y rellenar (ver más abajo)
 python manage.py migrate
@@ -46,10 +47,54 @@ SQLite y los estáticos se sirven desde disco.
 | `USE_R2` + `R2_*` | producción | Estáticos y media en Cloudflare R2 |
 | `LOG_DIR` | no | Por defecto `logs/` en local, `/var/log/django` en el VPS |
 
+## Estilos (Tailwind)
+
+El CSS se compila con la CLI de Tailwind:
+
+```
+static/src/input.css   ──build:css──▶   static/css/app.css   ──▶  Django
+```
+
+```bash
+npm run build:css      # compila y minifica
+npm run watch:css      # recompila al guardar, para desarrollo
+```
+
+**`static/css/app.css` se commitea a propósito**: el VPS no tiene Node, así que
+lo compila el CI y el servidor solo sirve el artefacto. Si editas
+`static/src/input.css` o añades clases nuevas en una plantilla, **recompila y
+commitea el resultado** — el CI compara y falla si no coincide.
+
+`tailwind.config.js` incluye `forum/forms.py` en `content` porque los widgets
+definen ahí sus clases; sin eso el purgado se lleva los estilos de todos los
+formularios.
+
+> **No hay colores `boom`, `coral`, `gold` ni `retro` en el theme, a propósito.**
+> Estaban en la config inline del CDN, pero nunca llegaron a aplicarse: se
+> asignaba `tailwind = {...}` *antes* de cargar el script del CDN, que crea su
+> propio `window.tailwind` y la descartaba. Verificado en producción: `.bg-boom`
+> era transparente y `.font-display` no daba Fredoka. Definirlos ahora activaría
+> de golpe decenas de clases repartidas por las plantillas y cambiaría el
+> diseño — es una decisión de diseño pendiente, no parte de la migración.
+
+### Regresión visual
+
+`scripts/capturar_visual.py` compara el render antes y después de tocar estilos:
+
+```bash
+python scripts/capturar_visual.py antes       # con el servidor en :8010
+# ... cambios ...
+python scripts/capturar_visual.py despues
+python scripts/capturar_visual.py --comparar antes despues
+```
+
+Captura 8 páginas × 2 temas y compara los estilos computados de 20 selectores
+sobre 23 propiedades. Requiere `pip install playwright pillow`.
+
 ## Tests
 
 ```bash
-python -m pytest -q      # 177 tests
+python -m pytest -q      # 183 tests
 ruff check .
 ```
 
@@ -70,6 +115,8 @@ Dos convenciones no obvias:
 Push a `master` → GitHub Actions ejecuta `ruff`, `pytest` y `check --deploy`, y
 **solo si pasan** entra el job de deploy (`needs: test`), que corre `deploy.sh` en
 el VPS: `migrate`, `collectstatic`, `recalcular_contadores` y recarga de Gunicorn.
+
+El CSS lo compila el **CI**, no el servidor: el VPS no tiene Node.
 
 Para relanzarlo sin un commit nuevo:
 
@@ -98,8 +145,10 @@ bbforo-app/
 │   ├── middleware.py  BanEnforcementMiddleware
 │   ├── mixins.py      VerifiedRequiredMixin
 │   ├── signals.py     rangos + contadores denormalizados
-│   └── tests/         177 tests
+│   └── tests/         183 tests
 ├── config/            settings, test_settings, urls, wsgi
+├── static/src/        input.css — FUENTE de los estilos
+├── static/css/        app.css — compilado (commiteado, lo genera el CI)
 ├── templates/         ← ÁRBOL BUENO (registrado en TEMPLATES["DIRS"])
 └── forum/templates/   solo parciales HTMX y el visor de logs
 ```
@@ -123,9 +172,10 @@ producción. En cualquier entorno con el gate activo, `mandatory`.
 
 ## Limitaciones conocidas
 
-- **CSP con `unsafe-inline` y `unsafe-eval`** en `script-src`: consecuencia de
-  cargar Tailwind y Alpine por CDN. Se resuelve con el build real de Tailwind;
-  tocarla antes rompe el sitio.
+- **CSP: queda `unsafe-eval` en `script-src`** porque Alpine evalúa sus
+  expresiones (`x-data`, `@click`) con `new Function`. `unsafe-inline` seguirá
+  mientras haya `<script>` inline en `base.html` y `style=""` dinámicos en las
+  plantillas. El CDN de Tailwind, que era el motivo principal, ya no está.
 - **2.249 de 4.776 imágenes del archivo no son recuperables**: dan 404 real en
   Wayback Machine. Las plantillas caen a `url_original` cuando falta `url_r2`.
 - Sin 2FA, sin notificaciones y sin favoritos.

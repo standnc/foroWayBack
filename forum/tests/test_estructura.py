@@ -291,3 +291,56 @@ class TestArgumentosDeTagEntrecomillados:
         assert not fallos, (
             "comentarios {# #} de varias líneas (usa {% comment %}):\n" + "\n".join(fallos)
         )
+
+
+class TestCssCompilado:
+    """El CSS servido es un artefacto commiteado: puede quedar desfasado.
+
+    static/css/app.css se genera con `npm run build:css` desde
+    static/src/input.css. Se commitea porque el VPS no tiene Node: lo compila el
+    CI. El riesgo es olvidarse de recompilar tras tocar el fuente o una
+    plantilla, y desplegar estilos viejos. Estos tests lo detectan.
+    """
+
+    from pathlib import Path
+
+    FUENTE = Path("static/src/input.css")
+    COMPILADO = Path("static/css/app.css")
+
+    def test_el_css_compilado_existe(self):
+        assert self.COMPILADO.exists(), "falta static/css/app.css — ejecuta `npm run build:css`"
+
+    def test_no_queda_tailwind_por_cdn(self):
+        """El CDN compilaba en el navegador y obligaba a unsafe-eval en la CSP."""
+        base = self.Path("templates/base.html").read_text(encoding="utf-8")
+        assert "cdn.tailwindcss.com" not in base
+        assert "css/app.css" in base
+
+    def test_la_csp_ya_no_permite_el_cdn_de_tailwind(self):
+        from django.conf import settings
+
+        directivas = settings.CONTENT_SECURITY_POLICY["DIRECTIVES"]
+        for clave in ("script-src", "style-src"):
+            assert not any("tailwindcss.com" in o for o in directivas[clave]), clave
+
+    def test_la_paleta_sunset_esta_en_el_compilado(self):
+        """Guardarraíl de purgado: si Tailwind se lleva estas clases, el foro
+        pierde su aspecto entero."""
+        css = self.COMPILADO.read_text(encoding="utf-8")
+        for clase in [
+            ".card-sunset", ".btn-sunset", ".navbar-sunset", ".form-sunset",
+            ".form-input-sunset", ".form-btn-primary", ".hero-title",
+            ".stat-number", ".footer-sunset", "[x-cloak]",
+        ]:
+            assert clase in css, f"{clase} no está en el CSS compilado"
+
+    def test_las_clases_de_los_formularios_sobreviven_al_purgado(self):
+        """forum/forms.py define clases Tailwind en los widgets; si no está en
+        `content` de tailwind.config.js, el purgado se las lleva."""
+        css = self.COMPILADO.read_text(encoding="utf-8")
+        # placeholder-slate-400 solo aparece en los widgets de forms.py, en
+        # ninguna plantilla: si está en el CSS, `content` cubre el fichero.
+        assert ".placeholder-slate-400" in css, (
+            "clase de forum/forms.py purgada: falta './forum/forms.py' en "
+            "`content` de tailwind.config.js"
+        )

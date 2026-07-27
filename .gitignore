@@ -18,8 +18,17 @@ db.sqlite3
 *.db
 
 # Data / logs
-*.json
+# Volcados de datos del scrape, no cualquier .json: package.json y
+# package-lock.json son necesarios para el build de CSS.
+*.dump
 *.log
+logs/
+
+# Node
+node_modules/
+
+# Capturas de regresión visual (scripts/capturar_visual.py)
+.visual/
 
 # OpenCode (local dev only)
 .opencode/

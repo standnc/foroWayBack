@@ -1,0 +1,21 @@
+{
+  "name": "bbforo",
+  "version": "1.0.0",
+  "description": "Build de CSS del foro ClashBang (Tailwind).",
+  "scripts": {
+    "build:css": "tailwindcss -i static/src/input.css -o static/css/app.css --minify",
+    "watch:css": "tailwindcss -i static/src/input.css -o static/css/app.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/standnc/foroWayBack.git"
+  },
+  "bugs": {
+    "url": "https://github.com/standnc/foroWayBack/issues"
+  },
+  "homepage": "https://github.com/standnc/foroWayBack#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  },
+  "private": true
+}
