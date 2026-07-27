@@ -2,18 +2,81 @@
 {% block title %}{{ profile_user.public_name }} — Perfil{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
+<div class="max-w-2xl mx-auto space-y-6">
+
   <div class="bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700/60 rounded-2xl p-8 text-center">
+    {% if profile_user.avatar_url %}
+    <img src="{{ profile_user.avatar_url }}" alt=""
+         class="w-20 h-20 rounded-full object-cover mx-auto mb-4 shadow-lg shadow-boom/20">
+    {% else %}
     <div class="w-20 h-20 rounded-full bg-gradient-to-br from-boom to-boom-400 flex items-center justify-center text-3xl font-bold text-white mx-auto mb-4 shadow-lg shadow-boom/20">
       {{ profile_user.public_name|first|upper }}
     </div>
-    <h1 class="font-display text-2xl font-bold text-white">{{ profile_user.public_name }}</h1>
-    {% if profile_user.bio %}
-    <p class="text-slate-300 mt-3 max-w-md mx-auto">{{ profile_user.bio }}</p>
     {% endif %}
-    <div class="flex items-center justify-center gap-2 mt-4 text-sm text-slate-500">
+
+    <h1 class="font-display text-2xl font-bold text-white">{{ profile_user.public_name }}</h1>
+
+    {# Rango y progreso: forum/signals.py los calculaba en cada mensaje y no se
+       mostraban en ninguna plantilla. #}
+    {% if perfil %}
+      {% if perfil.is_game_over %}
+      <span class="inline-block mt-2 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded bg-red-900/40 text-red-400 border border-red-500/30">
+        Game Over
+      </span>
+      {% else %}
+      <p class="mt-2 text-sm font-semibold" style="color: {{ perfil.color_rango }}">{{ perfil.rango_titulo }}</p>
+      <div class="max-w-xs mx-auto mt-3">
+        <div class="h-2 w-full rounded-full bg-slate-700/60 overflow-hidden" role="img"
+             aria-label="Progreso de rango: {{ perfil.puntos_barra }} de 100">
+          <div class="h-full rounded-full transition-all"
+               style="width: {{ perfil.puntos_barra }}%; background-color: {{ perfil.color_rango }}"></div>
+        </div>
+      </div>
+      {% endif %}
+    {% endif %}
+
+    {% if profile_user.bio %}
+    <p class="text-slate-300 mt-4 max-w-md mx-auto">{{ profile_user.bio }}</p>
+    {% endif %}
+
+    <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-5 text-sm text-slate-500">
       <span>Miembro desde {{ profile_user.date_joined|date:"F Y" }}</span>
+      <span aria-hidden="true">·</span>
+      <span>{{ profile_user.num_posts }} mensaje{{ profile_user.num_posts|pluralize }}</span>
+      <span aria-hidden="true">·</span>
+      <span>{{ profile_user.num_hilos }} hilo{{ profile_user.num_hilos|pluralize }}</span>
     </div>
   </div>
+
+  {% if ultimos_hilos %}
+  <section class="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5">
+    <h2 class="font-display text-lg font-bold text-white mb-3">Últimos hilos</h2>
+    <ul class="space-y-2">
+      {% for h in ultimos_hilos %}
+      <li class="text-sm">
+        <a href="{% url 'forum:hilo' h.pk %}" class="text-slate-300 hover:text-boom transition-colors">{{ h.titulo }}</a>
+        <span class="text-xs text-slate-600 ml-2">{{ h.categoria.nombre }} · {{ h.creado|date:"d/m/Y" }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if ultimos_posts %}
+  <section class="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5">
+    <h2 class="font-display text-lg font-bold text-white mb-3">Últimas respuestas</h2>
+    <ul class="space-y-2">
+      {% for p in ultimos_posts %}
+      <li class="text-sm">
+        <a href="{% url 'forum:hilo' p.hilo.pk %}#post-{{ p.pk }}" class="text-slate-300 hover:text-boom transition-colors">
+          {{ p.contenido|truncatechars:70 }}
+        </a>
+        <span class="text-xs text-slate-600 ml-2">en {{ p.hilo.titulo|truncatechars:30 }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
 </div>
 {% endblock %}

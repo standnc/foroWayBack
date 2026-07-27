@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Reportar mensaje — ClashBang Forum{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="font-display text-2xl font-bold text-white mb-2">Reportar mensaje</h1>
+  <p class="text-slate-400 text-sm mb-6">
+    Un moderador revisará el mensaje. Solo el equipo de moderación verá este reporte.
+  </p>
+
+  <article class="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 mb-6">
+    <div class="text-xs text-slate-500 mb-2">
+      {% if post_reportado.autor_historico %}{{ post_reportado.autor_historico }}{% else %}{{ post_reportado.autor.public_name|default:"Anónimo" }}{% endif %}
+      · {{ post_reportado.creado|date:"d/m/Y H:i" }}
+    </div>
+    <div class="prose prose-invert prose-sm max-w-none text-slate-300">
+      {{ post_reportado.contenido|truncatewords:60|linebreaks }}
+    </div>
+  </article>
+
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    <div>
+      <label for="{{ form.tipo.id_for_label }}" class="block text-sm text-slate-300 mb-1.5">{{ form.tipo.label }}</label>
+      {{ form.tipo }}
+      {% if form.tipo.errors %}<p class="text-sm text-red-400 mt-1">{{ form.tipo.errors|striptags }}</p>{% endif %}
+    </div>
+    <div>
+      <label for="{{ form.descripcion.id_for_label }}" class="block text-sm text-slate-300 mb-1.5">{{ form.descripcion.label }}</label>
+      {{ form.descripcion }}
+      {% if form.descripcion.errors %}<p class="text-sm text-red-400 mt-1">{{ form.descripcion.errors|striptags }}</p>{% endif %}
+    </div>
+    <div class="flex items-center gap-3">
+      <button type="submit"
+              class="bg-boom hover:bg-boom-dark text-white font-semibold px-5 py-2 rounded-lg transition-colors text-sm">
+        Enviar reporte
+      </button>
+      <a href="{% url 'forum:hilo' post_reportado.hilo.pk %}"
+         class="text-slate-400 hover:text-white transition-colors text-sm">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

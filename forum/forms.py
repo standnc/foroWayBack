@@ -3,7 +3,7 @@ from django.utils.html import strip_tags
 
 from accounts.models import User
 
-from .models import Ban, Categoria, Hilo, Post, Warning
+from .models import Ban, Categoria, Hilo, Post, Report, Warning
 
 
 class HiloForm(forms.ModelForm):
@@ -78,6 +78,53 @@ class PostForm(forms.ModelForm):
         valor = self.cleaned_data["contenido"]
         if len(strip_tags(valor).strip()) < 1:
             raise forms.ValidationError("La respuesta no puede estar vacía.")
+        return valor
+
+
+class ReportForm(forms.ModelForm):
+    """Reportar un post. El modelo y el panel existían desde el principio,
+    pero no había forma de crear un reporte desde el foro."""
+
+    class Meta:
+        model = Report
+        fields = ("tipo", "descripcion")
+        labels = {
+            "tipo": "Motivo del reporte",
+            "descripcion": "Detalles (opcional)",
+        }
+        widgets = {
+            "tipo": forms.Select(attrs={
+                "class": "w-full rounded-lg bg-slate-800 border border-slate-600 "
+                         "px-4 py-2 text-white focus:ring-2 focus:ring-boom focus:border-transparent",
+            }),
+            "descripcion": forms.Textarea(attrs={
+                "class": "w-full rounded-lg bg-slate-800 border border-slate-600 "
+                         "px-4 py-2 text-white placeholder-slate-400 "
+                         "focus:ring-2 focus:ring-boom focus:border-transparent",
+                "placeholder": "Cuéntanos qué pasa con este mensaje...",
+                "rows": "4",
+            }),
+        }
+
+
+class EditarPostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ("contenido",)
+        labels = {"contenido": "Contenido del mensaje"}
+        widgets = {
+            "contenido": forms.Textarea(attrs={
+                "class": "w-full rounded-lg bg-slate-800 border border-slate-600 "
+                         "px-4 py-2 text-white placeholder-slate-400 "
+                         "focus:ring-2 focus:ring-boom focus:border-transparent",
+                "rows": "8",
+            }),
+        }
+
+    def clean_contenido(self):
+        valor = self.cleaned_data["contenido"]
+        if len(strip_tags(valor).strip()) < 1:
+            raise forms.ValidationError("El mensaje no puede quedar vacío.")
         return valor
 
 

@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count, Max, Q
 from django.http import HttpResponseForbidden
@@ -7,11 +8,27 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.text import slugify
-from django.views.generic import CreateView, DetailView, FormView, ListView, TemplateView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    FormView,
+    ListView,
+    TemplateView,
+    UpdateView,
+)
 
 from accounts.models import User
 
-from .forms import BanForm, HiloForm, PostForm, ResolverReportForm, WarningForm
+from .forms import (
+    BanForm,
+    EditarPostForm,
+    HiloForm,
+    PostForm,
+    ReportForm,
+    ResolverReportForm,
+    WarningForm,
+)
 from .mixins import VerifiedRequiredMixin
 from .models import Ban, Categoria, Hilo, ModerationLog, Post, Report, Warning
 
@@ -91,7 +108,12 @@ class HiloDetailView(VerifiedRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["posts"] = (
-            self.object.posts.select_related("autor").order_by("orden")
+            self.object.posts
+            # select_related del perfil: la ficha lateral pinta rango, color y
+            # estado de cada autor, y sin esto son dos queries por mensaje.
+            .select_related("autor", "autor__profile")
+            .prefetch_related("imagenes")
+            .order_by("orden")
         )
         ctx["form"] = PostForm()
         return ctx
@@ -161,6 +183,94 @@ class CrearHiloView(VerifiedRequiredMixin, LoginRequiredMixin, CreateView):
         return reverse("forum:hilo", kwargs={"pk": self.object.pk})
 
 
+class _PostPropioMixin(VerifiedRequiredMixin, UserPassesTestMixin):
+    """Solo el autor del mensaje o el staff pueden tocarlo."""
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Post.objects.select_related("hilo", "autor"), pk=self.kwargs["pk"])
+
+    def test_func(self):
+        post = self.get_object()
+        usuario = self.request.user
+        if post.es_historico or post.autor is None:
+            return False  # el archivo del scrape no se edita
+        return post.autor == usuario or usuario.is_staff
+
+    def _registrar_si_modera(self, post, accion, descripcion):
+        """Deja rastro en ModerationLog solo cuando actúa un moderador ajeno."""
+        if post.autor != self.request.user and self.request.user.is_staff:
+            ModerationLog.objects.create(
+                moderador=self.request.user,
+                accion=accion,
+                descripcion=descripcion,
+                target_post=post if accion != "borrar_post" else None,
+                target_hilo=post.hilo,
+                target_usuario=post.autor,
+            )
+
+
+class EditarPostView(_PostPropioMixin, UpdateView):
+    model = Post
+    form_class = EditarPostForm
+    template_name = "forum/editar_post.html"
+
+    def form_valid(self, form):
+        form.instance.editado = timezone.now()
+        respuesta = super().form_valid(form)
+        self._registrar_si_modera(
+            self.object, "editar_post", f"Post #{self.object.pk} editado por un moderador"
+        )
+        return respuesta
+
+    def get_success_url(self):
+        return f"{reverse('forum:hilo', kwargs={'pk': self.object.hilo.pk})}#post-{self.object.pk}"
+
+
+class BorrarPostView(_PostPropioMixin, DeleteView):
+    model = Post
+    template_name = "forum/borrar_post.html"
+
+    def form_valid(self, form):
+        post = self.get_object()
+        hilo_pk = post.hilo.pk
+        if post.orden == 0:
+            # Borrar la apertura dejaría el hilo huérfano de contexto.
+            return HttpResponseForbidden("No se puede borrar el mensaje que abre el hilo.")
+        self._registrar_si_modera(
+            post, "borrar_post", f"Post #{post.pk} borrado por un moderador"
+        )
+        self.success_url = reverse("forum:hilo", kwargs={"pk": hilo_pk})
+        return super().form_valid(form)
+
+
+class CrearReportView(VerifiedRequiredMixin, CreateView):
+    """Reportar un post: el modelo y el panel existían, faltaba la entrada."""
+
+    model = Report
+    form_class = ReportForm
+    template_name = "forum/reportar.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.post_reportado = get_object_or_404(Post, pk=self.kwargs["pk"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["post_reportado"] = self.post_reportado
+        return ctx
+
+    def form_valid(self, form):
+        form.instance.post = self.post_reportado
+        form.instance.hilo = self.post_reportado.hilo
+        form.instance.reportado_por = self.request.user
+        respuesta = super().form_valid(form)
+        messages.success(self.request, "Gracias, el equipo de moderación revisará el mensaje.")
+        return respuesta
+
+    def get_success_url(self):
+        return reverse("forum:hilo", kwargs={"pk": self.post_reportado.hilo.pk})
+
+
 class BuscarView(ListView):
     """Búsqueda paginada, en vez del corte fijo a 30 resultados."""
 
@@ -209,7 +319,23 @@ class PerfilView(DetailView):
 
     def get_object(self, queryset=None):
         # get_object_or_404: un perfil inexistente es un 404, no un 500.
-        return get_object_or_404(User, username=self.kwargs["username"])
+        return get_object_or_404(
+            User.objects.select_related("profile"), username=self.kwargs["username"]
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        usuario = self.object
+        ctx["perfil"] = getattr(usuario, "profile", None)
+        ctx["ultimos_hilos"] = (
+            usuario.hilos.select_related("categoria").order_by("-creado")[:5]
+        )
+        ctx["ultimos_posts"] = (
+            usuario.posts.exclude(orden=0)
+            .select_related("hilo", "hilo__categoria")
+            .order_by("-creado")[:5]
+        )
+        return ctx
 
 
 # ============ MODERATION VIEWS ============
