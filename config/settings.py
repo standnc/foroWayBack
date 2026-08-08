@@ -186,12 +186,17 @@ USE_R2 = os.getenv("USE_R2", "False").lower() == "true"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-# Los estáticos por R2 dan 403 (Cloudflare "error code: 1014", CNAME cruzado en
-# static.clashbang.forum). Afecta a TODO el bucket, no solo al CSS: se ve al
-# dejar de cargar Tailwind por CDN. Mientras no se arregle el dominio de R2, los
-# sirve Nginx desde el propio dominio (el location /static/ ya existe), que
-# además ahorra una petición cross-origin. Las imágenes del archivo siguen en R2
-# con sus URLs guardadas en BD, así que no dependen de esto.
+# El 1014 que tumbaba static.clashbang.forum está resuelto: el CNAME estaba
+# puesto a mano contra el endpoint S3 (…r2.cloudflarestorage.com), que no sirve
+# objetos por Host público. Ahora el dominio es un Custom Domain dado de alta
+# desde el bucket, así que R2 vuelve a servir.
+#
+# Aun así los estáticos siguen saliendo por Nginx a propósito: van en el mismo
+# dominio que el HTML, sin salto cross-origin ni dependencia externa para que el
+# foro se vea. Poner STATIC_DESDE_R2=True los devuelve al bucket.
+#
+# Un Custom Domain publica el bucket ENTERO, sin rutas exentas: nada que no
+# quieras público puede vivir en foroboombang-static.
 STATIC_DESDE_R2 = os.getenv("STATIC_DESDE_R2", "False").lower() == "true"
 
 if USE_R2:
