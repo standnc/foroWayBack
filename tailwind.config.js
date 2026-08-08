@@ -7,6 +7,11 @@ module.exports = {
     // el purgado se llevaría los estilos de todos los formularios.
     "./forum/forms.py",
   ],
+  // El tema por defecto (BoomBang Sunset, el ámbar cálido) es el CLARO. El modo
+  // nocturno se activa con la clase .dark en <html>, que pone el botón de la
+  // navbar. Sin esto Tailwind usa 'media' y las variantes dark: obedecerían al
+  // sistema operativo en vez de al botón — que es justamente lo que pasaba.
+  darkMode: "class",
   theme: {
     extend: {
       // ── Nota importante ──────────────────────────────────────────────────

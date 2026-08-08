@@ -1,12 +1,24 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="es" class="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ClashBangForum — Foro Retro BoomBang{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}Foro conmemorativo BoomBang. Revive la comunidad del juego más colorido.{% endblock %}">
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    {# Aplica el tema guardado ANTES de pintar; esperar a Alpine (defer) haría entrar el nocturno de golpe. #}
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem("tema") === "dark") {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (e) {
+          /* localStorage capado (modo privado, cookies bloqueadas): tema claro */
+        }
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -17,7 +29,16 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body class="font-body antialiased min-h-screen flex flex-col"
-        x-data="{ theme: 'dark', mobileNavOpen: false, scrolled: false }"
+        x-data="{
+          theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+          mobileNavOpen: false,
+          scrolled: false,
+          alternarTema() {
+            this.theme = this.theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.classList.toggle('dark', this.theme === 'dark');
+            try { localStorage.setItem('tema', this.theme); } catch (e) {}
+          }
+        }"
         @scroll.window="scrolled = window.scrollY > 20">
 
     <a href="#main-content"
@@ -60,13 +81,16 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <button @click="theme = theme === 'dark' ? 'light' : 'dark'"
+          {# El icono lo decide la clase .dark del html, no Alpine: así sale bien ya en el primer frame. #}
+          <button @click="alternarTema()"
                   class="icon-btn-sunset p-2 rounded-lg transition-colors"
+                  :aria-pressed="theme === 'dark'"
+                  :title="theme === 'dark' ? 'Cambiar a modo diurno' : 'Cambiar a modo nocturno'"
                   aria-label="Cambiar tema">
-            <svg x-show="theme === 'dark'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="icono-tema-sol w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
             </svg>
-            <svg x-show="theme === 'light'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
+            <svg class="icono-tema-luna w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
             </svg>
           </button>
