@@ -47,9 +47,19 @@ log "INFO" "=== Iniciando backup de configuracion ==="
 
 mkdir -p "${CFG_BACKUP_DIR}"
 
+# El .env NO entra aquí. Este tarball acabó en su día dentro del bucket de R2,
+# y al publicar el bucket por Custom Domain habrian quedado descargables el
+# SECRET_KEY, la contrasena de PostgreSQL y las claves de R2 y SMTP. En su lugar
+# se guarda el inventario de VARIABLES, sin valores: sirve para reconstruir el
+# .env sabiendo que falta, sin llevarse los secretos de paseo.
+ENV_INVENTARIO="${CFG_BACKUP_DIR}/env_variables_${TIMESTAMP}.txt"
+grep -oE '^[A-Z0-9_]+=' /var/www/foroWayBack/.env 2>/dev/null | tr -d '=' > "${ENV_INVENTARIO}" || true
+chmod 600 "${ENV_INVENTARIO}"
+log "INFO" "Inventario de variables del .env (sin valores): $(wc -l < "${ENV_INVENTARIO}") claves"
+
 if ! tar -czf "${CFG_BACKUP_FILE}" \
     /var/www/foroWayBack/config/settings.py \
-    /var/www/foroWayBack/.env 2>/dev/null \
+    "${ENV_INVENTARIO}" \
     /etc/nginx/sites-available/ \
     /etc/nginx/sites-enabled/ \
     /etc/systemd/system/foro.service \
@@ -65,8 +75,9 @@ fi
 CFG_SIZE=$(du -h "${CFG_BACKUP_FILE}" | cut -f1)
 log "INFO" "Config backup OK: ${CFG_BACKUP_FILE} (${CFG_SIZE})"
 
-# Rotar backups config antiguos
-find "${CFG_BACKUP_DIR}" -name "config_backup_*.tar.gz" -mtime +${RETENTION_DAYS} -print0 2>/dev/null | while IFS= read -r -d "" f; do
+# Rotar backups config antiguos (el inventario suelto se va con ellos: dentro
+# del tarball ya viaja una copia, la de fuera solo es el intermedio del tar)
+find "${CFG_BACKUP_DIR}" \( -name "config_backup_*.tar.gz" -o -name "env_variables_*.txt" \) -mtime +${RETENTION_DAYS} -print0 2>/dev/null | while IFS= read -r -d "" f; do
     rm -f "$f"
     log "INFO" "Config backup antiguo eliminado: $(basename "$f")"
 done
