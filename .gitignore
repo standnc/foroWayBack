@@ -46,3 +46,5 @@ Thumbs.db
 
 # Pytest
 .pytest_cache/
+foro.db
+imagenes_foro/
